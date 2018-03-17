@@ -12,11 +12,15 @@ server.listen(8000);
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var msUserCollection = null;
+var trJinrouCollection = null;
+var trShokeiCollection = null;
 MongoClient.connect("mongodb://127.0.0.1:27017/", function(err, db) {
 	if (err)
 		throw err;
 	var dbo = db.db("qcJinrou");
-	msUserCollection = dbo.collection("msUser")
+	msUserCollection = dbo.collection("msUser");
+	trJinrouCollection = dbo.collection("trJinrouCollection");
+	trShokeiCollection = dbo.collection("trShokeiCollection");
 });
 
 var MAX_MESSAGES_SIZE = 30;
@@ -102,6 +106,8 @@ io.sockets.on('connection', function(socket) {
 				showUsers();
 				io.sockets.emit('clearId');
 			});
+			trShokeiCollection.deleteMany({});
+			trJinrouCollection.deleteMany({});
 		}
 	}
 	// ----------------------------------------------------------------------
@@ -111,6 +117,15 @@ io.sockets.on('connection', function(socket) {
 		if (password === "password") {
 			// 役職割振
 			setYakushoku();
+			// 全員に投票カウント0を設定
+			msUserCollection.find({}).toArray(function(err, result) {
+				var shokeiList = [];
+				for (var i = 0; i < result.length; i++) {
+					shokeiList.push({_id: ObjectId(result[i]._id), count: 0});
+				}
+				trShokeiCollection.insertMany(shokeiList);
+				showUsers();
+			});
 		}
 	}
 	// ----------------------------------------------------------------------
@@ -181,8 +196,6 @@ io.sockets.on('connection', function(socket) {
 	// ----------------------------------------------------------------------
 	// 夜の行動.
 	// ----------------------------------------------------------------------
-	var vote = {};
-	var jinrouTargetUser = [];
 	function nightAction(params) {
 		var where = {socketId: socket.id};
 		var set = {$set: {nightActionFlg: true}};
@@ -190,9 +203,12 @@ io.sockets.on('connection', function(socket) {
 			msUserCollection.find(where).toArray(function(err, result) {
 				var yakushoku = result[0].yakushoku;
 				if (yakushoku === "人狼") {
-					jinrouTargetUser.push(params);
+					trJinrouCollection.insertOne(params);
 				} else {
-					vote[params.userId] = vote[params.userId] ? vote[params.userId] + 1 : 1;
+					var where = {_id: ObjectId(params.userId)};
+					var set = {$inc: {count: 1}};
+					console.log(where);
+					trShokeiCollection.updateMany(where, set);
 				}
 
 				msUserCollection.find({}).toArray(function(err, result) {
@@ -200,6 +216,7 @@ io.sockets.on('connection', function(socket) {
 					for (var i = 0; i < result.length; i++) {
 						var d = result[i];
 						if (d.nightActionFlg !== true) {
+							// ひとりでも行動していない人がいれば夜時間継続
 							allUserEndFlg = false;
 							return false;
 						}
@@ -209,45 +226,53 @@ io.sockets.on('connection', function(socket) {
 						showMessage('全員の夜の行動が終わりました。');
 
 						// 処刑
-						var maxUserId = null;
-						var maxCount = 0;
-						var userIds = Object.keys(vote);
-						for (var i = 0; i < userIds.length; i++) {
-							var key = userIds[i];
-							if (maxCount < vote[key]) maxUserId = key;
-						}
-						if (maxUserId) {
-							var where = {_id: ObjectId(maxUserId)};
-							var set = {$set: {deadFlg: true}};
-							msUserCollection.updateMany(where, set, showUsers);
-							msUserCollection.find(where).toArray(function(err, result) {
-								showMessage('"' + result[0].userName + '" さんが処刑されました。');
-							});
-						} else {
-							showMessage('処刑された人はいませんでした。');
-						}
+						trShokeiCollection.find({}).toArray(function(err, result) {
+							var maxUserId = null;
+							var maxCount = 0;
+							console.log("shokei_col");
+							console.log(result);
+							for (var i = 0; i < result.length; i++) {
+								if (maxCount < result[i].count) {
+									maxUserId = result[i]._id;
+								}
+							}
+							if (maxUserId) {
+								var where = {_id: ObjectId(maxUserId)};
+								var set = {$set: {deadFlg: true}};
+								msUserCollection.updateMany(where, set, showUsers);
+								msUserCollection.find(where).toArray(function(err, result) {
+									showMessage('"' + result[0].userName + '" さんが処刑されました。');
+								});
+							} else {
+								showMessage('処刑された人はいませんでした。');
+							}
+
+							// 勝敗判定
+							isGameSet();
+						});
 
 						// 人狼
-						var jinrouTargetName = "";
-						for (var i = 0; i < jinrouTargetUser.length; i++) {
-							if (i > 0) {
-								jinrouTargetName += "、 ";
+						trJinrouCollection.find({}).toArray(function(err, result) {
+							var jinrouTargetName = "";
+							for (var i = 0; i < result.length; i++) {
+								if (i > 0) {
+									jinrouTargetName += "、 ";
+								}
+								jinrouTargetName += '"' + result[i].userName + '" さん';
+								var where = {_id: ObjectId(result[i].userId)};
+								var set = {$set: {deadFlg: true}};
+								msUserCollection.updateMany(where, set, showUsers);
 							}
-							jinrouTargetName += '"' + jinrouTargetUser[i].userName + '" さん';
-							var where = {_id: ObjectId(jinrouTargetUser[i].userId)};
-							var set = {$set: {deadFlg: true}};
-							msUserCollection.updateMany(where, set, showUsers);
-						}
-						if (jinrouTargetName) {
-							showMessage(jinrouTargetName + "が人狼の餌食になりました。");
-						} else {
-							showMessage("人狼の被害者はいませんでした。");
-						}
+							if (jinrouTargetName) {
+								showMessage(jinrouTargetName + "が人狼の餌食になりました。");
+							} else {
+								showMessage("人狼の被害者はいませんでした。");
+							}
+						});
 
 						msUserCollection.updateMany({}, {$set: {nightActionFlg: false}});
-
-						vote = {};
-						jinrouTargetUser = [];
+						trJinrouCollection.remove();
+						trShokeiCollection.updateMany({}, {$set: {count: 0}});
 					}
 				});
 			});
@@ -262,6 +287,7 @@ io.sockets.on('connection', function(socket) {
 				var entity = result[i];
 				var yakushoku = entity.yakushoku;
 				var params = {};
+				params.yakushoku = yakushoku;
 				params.message = 'あなたは "' + entity.yakushoku + '" です。';
 				if (yakushoku === "人狼") {
 					params.addMessage = "うまく人狼だとばれないように立ち回りましょう。<br />夜に食べる予定の人間を選択してください。";
@@ -302,7 +328,55 @@ io.sockets.on('connection', function(socket) {
 	// 勝敗判定.
 	// ----------------------------------------------------------------------
 	function isGameSet() {
-
+		msUserCollection.find({}).toArray(function (err, result) {
+			
+			var doesLiveJinrou = function () {
+				var count = 0;
+				
+				for (var i = 0; i < result.length; i++) {
+					var entity = result[i];
+					if (!entity.deadFlg && entity.yakushoku === "人狼") {
+						 count++;
+					}
+				}
+				
+				console.log("生きている人狼: " + count);
+				return count > 0;
+			};
+			
+			var doesLiveMurabito = function () {
+				var count = 0;
+				
+				for (var i = 0; i < result.length; i++) {
+					var entity = result[i];
+					if (!entity.deadFlg && entity.yakushoku !== "人狼") {
+						 count++;
+					}
+				}
+				
+				console.log("生きている村人: " + count);
+				return count > 0;
+			};
+			
+			// -----------------------------------------------------------
+			// main
+			
+			var message = null; ;
+			var jinrouLiveFlag = doesLiveJinrou();
+			var murabitoLiveFlag = doesLiveMurabito();
+			
+			if (jinrouLiveFlag && !murabitoLiveFlag) {
+				message = "オオカミ陣営の勝利！";
+			}
+			
+			if (murabitoLiveFlag && !jinrouLiveFlag) {
+				message = "人間の勝利だ！けだものども";
+			}
+			
+			if (message !== null) {
+				io.sockets.emit('gameSet', message);
+			}
+		});
 	}
 	// ----------------------------------------------------------------------
 	// クライアントにメッセージを表示する.

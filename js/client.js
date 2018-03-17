@@ -75,6 +75,9 @@ $(function() {
 		this.socket.on('startTimer', function() {
 			self.startTimer();
 		});
+		this.socket.on('gameSet', function(winTeam) {
+			self.gameSet(winTeam);
+		});
 	};
 	// ----------------------------------------------------------------------
 	// 確定ボタン押下処理.
@@ -161,6 +164,7 @@ $(function() {
 		$message.fadeIn();
 		var $itemUser = $('.item_user');
 		$itemUser.click(function() {
+			console.log(params);
 			if (params.yakushoku === "占い師") {
 				var userName = $(this).find('[name="userName"]').val();
 				var yakushoku = $(this).find('[name="yakushoku"]').val();
@@ -184,6 +188,24 @@ $(function() {
 		$message.hide();
 		$('#gameMessage').empty().append($message);
 		$message.fadeIn();
+		var $itemUser = $('.item_user');
+		$itemUser.click(function() {
+			var userId = $(this).find('[name="userId"]').val();
+			var userName = $(this).find('[name="userName"]').val();
+			alert(userName + "さんを選択しました。");
+			self.send('nightAction', {userId: userId, userName: userName});
+			$itemUser.off();
+		});
+	};
+	// ----------------------------------------------------------------------
+	// 勝敗判定.
+	// ----------------------------------------------------------------------
+	Client.prototype.gameSet = function(winTeam) {
+		var tag = '<h2>勝敗</h2><div class="mainMessage">' + winTeam + '</div>';
+		var $message = $(tag);
+		$message.hide();
+		$('#gameMessage').append($message);
+		$message.fadeIn(3000);
 		var $itemUser = $('.item_user');
 		$itemUser.click(function() {
 			var userId = $(this).find('[name="userId"]').val();
