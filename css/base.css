@@ -1,0 +1,420 @@
+body, div, p, span, table, table th, table td, ul, li {
+	margin: 0;
+	border: 0;
+	padding: 0;
+}
+body, div, p, span, table, table th, table td, ul, li, input, option, h1, h2, h3 {
+	box-sizing: border-box;
+	font-family: arial, sans-serif;
+	font-size: 16px;
+}
+h1 {
+	font-size: 32px;
+}
+h2 {
+	font-size: 22px;
+}
+html,
+body {
+	width: 100%;
+	height: 100%;
+}
+ul li {
+	list-style: none;
+}
+/*------------------------------------------------------------*/
+/* 入力欄 */
+/*------------------------------------------------------------*/
+input[type="text"],
+input[type="number"] {
+	width: 12em;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+	padding: 8px;
+	font-size: 16px;
+}
+input[type="number"] {
+	text-align: right;
+}
+/*------------------------------------------------------------*/
+/* テーブル */
+/*------------------------------------------------------------*/
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+table th,
+table td {
+	border-right: 1px solid #5F5F5F;
+	border-bottom: 1px solid #5F5F5F;
+	padding: 4px 8px;
+	white-space: nowrap;
+}
+table th:first-child,
+table td:first-child {
+	border-left: 1px solid #5F5F5F;
+}
+table th {
+	padding: 4px 8px;
+	background-color: #5F5F5F;
+	color: white;
+}
+table tr:nth-child(even) {
+	background-color: #F8F8F8;
+}
+table.mini {
+	display: inline-block;
+	width: auto;
+	vertical-align: bottom;
+}
+table tr.buy_row {
+	background-color: #fdd;
+}
+table tr.sell_row {
+	background-color: #ddf;
+}
+table tr.songiri_row {
+	background-color: #ccf;
+}
+/*------------------------------------------------------------*/
+/* 株価一覧 */
+/*------------------------------------------------------------*/
+table td.button_bunseki {
+	width: 50px;
+}
+table td.juni {
+	text-align: center;
+}
+table td.shoken_code {
+	text-align: center;
+}
+table td.kaishamei {}
+table td.shijo {
+	text-align: center;
+}
+table td.torihiki_date {
+	text-align: center;
+}
+table td.torihikine {}
+table td.zenjitsuhi_gaku {}
+table td.zenjitsuhi_ritsu {}
+table td.dekidaka {}
+table td.takane {}
+table td.yasune {}
+table td.uehigeritsu {}
+table td.gyoshu {}
+table td.yoku_eigyobi {}
+table td.csv_date {}
+table td.yoku_yoritsuki {}
+table td.yoku_takane {}
+table td.yoku_yasune {}
+table td.kanosei_win {
+	text-align: center;
+}
+table td.kanosei_lose {
+	text-align: center;
+}
+table td.yoritsuki_kairiritsu {}
+table td.judge {
+	text-align: center;
+}
+table td.pips {}
+table td.pips_shisu_bar {
+	padding-left: 0;
+}
+/*------------------------------------------------------------*/
+/* テーブル化 */
+/*------------------------------------------------------------*/
+.table {
+	display: table;
+	width: 100%;
+}
+.table .cell {
+	display: table-cell;
+}
+/*------------------------------------------------------------*/
+/* スクロール領域 */
+/*------------------------------------------------------------*/
+.scroll_wrapper {
+	display: block;
+	width: 100%;
+	white-space: nowrap;
+	overflow: auto;
+}
+/*------------------------------------------------------------*/
+/* マイナス表示 */
+/*------------------------------------------------------------*/
+.minus {
+	color: red;
+}
+/*------------------------------------------------------------*/
+/* 寄せ */
+/*------------------------------------------------------------*/
+.align_right {
+	text-align: right;
+}
+/*------------------------------------------------------------*/
+/* ボタン */
+/*------------------------------------------------------------*/
+.button {
+  display: inline-block;
+  padding: 2px 20px;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+}
+.button::before,
+.button::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  content: '';
+}
+.button,
+.button::before,
+.button::after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-transition: all .3s;
+  transition: all .3s;
+}
+.button {
+  border: 2px solid #333;
+  background-color: #333;
+  color: #fff;
+}
+.button:hover {
+  border-color: #59b1eb;
+  background-color: #fff;
+  color: #59b1eb;
+}
+.button.mini {
+	padding: 4px 6px;
+	font-size: 12px;
+}
+/*------------------------------------------------------------*/
+/* リスト */
+/*------------------------------------------------------------*/
+.header {
+	width: 100%;
+	text-align: center;
+	background-color: #222222;
+	overflow: auto;
+}
+.header ul {
+	display: block;
+	overflow: auto;
+	white-space: nowrap;
+	font-size: 0;
+}
+.header ul li {
+	display: inline-block;
+	min-width: 25%;
+	border-left: 1px solid #222;
+	list-style: none;
+}
+.header ul li:first-child {
+	border-left: 0;
+}
+.header ul li a {
+	display: block;
+	padding: 16px 20px;
+	background-color: #6A6E76;
+	color: white;
+	text-decoration: none;
+}
+.header ul li a:hover {
+	background-color: #333333;
+}
+/*------------------------------------------------------------*/
+/* コンテンツ */
+/*------------------------------------------------------------*/
+.contents {
+	width: 100%;
+	padding: 0;
+	overflow: auto;
+}
+/*------------------------------------------------------------*/
+/* 見出し */
+/*------------------------------------------------------------*/
+h2 {
+	margin-bottom: 1px;
+	border-left: 5px solid #000000;
+	padding: 4px 8px;
+	background-color: #5F5F5F;
+	color: #FFFFFF;
+	font-size: 1.2em;
+}
+/*------------------------------------------------------------*/
+/* インライン */
+/*------------------------------------------------------------*/
+.inline {
+	display: inline-block !important;
+	vertical-align: top !important;
+}
+/*------------------------------------------------------------*/
+/* バー */
+/*------------------------------------------------------------*/
+.bar {
+	display: inline-block;
+	height: 12px;
+	background-color: #999999;
+}
+.minus_bar {
+	background-color: #ff9999;
+}
+/*------------------------------------------------------------*/
+/* グラフ */
+/*------------------------------------------------------------*/
+.graph_wrapper {
+	max-width: 100%;
+	overflow: auto;
+}
+/*------------------------------------------------------------*/
+/* 定義リスト */
+/*------------------------------------------------------------*/
+div.two_block {
+	display: inline-block;
+	width: 48%;
+}
+dl {
+	display: table;
+	width: 100%;
+	margin: 0;
+	border-bottom: 1px solid #ddd;
+	padding: 0;
+}
+dl dt,
+dl dd {
+	display: table-cell;
+	margin: 0;
+	padding: 5px 10px;
+	white-space: nowrap;
+}
+dl dt {
+	min-width: 7em;
+	width: 9em;
+	border-right: 1px solid #ddd;
+}
+dl dd {
+	font-size: 14px;
+}
+/*------------------------------------------------------------*/
+/* ボタンエリア */
+/*------------------------------------------------------------*/
+.button_area {
+	margin-top: 10px;
+	padding-bottom: 10px;
+	text-align: center;
+}
+.button_area > div {
+	padding-bottom: 10px;
+}
+/*------------------------------------------------------------*/
+/* ボタン */
+/*------------------------------------------------------------*/
+.button_base {
+	display: inline-block;
+	border-radius: 4px;
+	border-bottom: 2px solid #787878;
+	padding: 5px 25px;
+	background-color: #C1C1C1;
+	color: white;
+	font-size: 16px;
+	font-weight: bold;
+	text-decoration: none;
+}
+.button_base:hover {
+	background-color: #A8A8A8;
+}
+.button_base:active {
+	background-color: #787878;
+}
+.button_base.button_mini {
+	border-bottom: 2px solid #787878;
+	padding: 2px 15px;
+	font-size: 14px;
+}
+/*------------------------------------------------------------*/
+/* アコーディオン */
+/*------------------------------------------------------------*/
+.accordion_wrapper {
+	display: none;
+}
+/*------------------------------------------------------------*/
+/* メニュー */
+/*------------------------------------------------------------*/
+.header ul.fixed_menu {
+	display: none;
+}
+/*------------------------------------------------------------*/
+/* 利益計算結果 */
+/*------------------------------------------------------------*/
+.riekiKeisanResult {
+	padding-left: 2em;
+}
+/*------------------------------------------------------------*/
+/* ユーザー一覧 */
+/*------------------------------------------------------------*/
+ul.name_with_icon_list {
+	display: block;
+	width: 100%;
+	word-break: break-all;
+}
+ul.name_with_icon_list li {
+	display: inline-block;
+	min-width: 5em;
+	margin-top: 1em;
+	margin-left: 1em;
+	border-radius: 4px;
+	border: 2px solid #ccc;
+	text-align: center;
+}
+ul.name_with_icon_list li.dead {
+	opacity: 0.25;
+	background-color: #fcc;
+}
+ul.name_with_icon_list li img {
+	display: inline-block;
+	max-width: 8em;
+	width: 100%;
+}
+ul.name_with_icon_list li .item_name {
+	display: block;
+	width: 100%;
+	padding: 0.3em;
+	white-space: nowrap;
+	text-align: center;
+}
+/*------------------------------------------------------------*/
+/* 情報表示欄 */
+/*------------------------------------------------------------*/
+.info_area {
+	padding: 0.3em;
+}
+/*------------------------------------------------------------*/
+/* タイマー */
+/*------------------------------------------------------------*/
+#timer {
+	text-align: center;
+	font-weight: bold;
+	font-size: 36px;
+}
+/*------------------------------------------------------------*/
+/* ゲームメッセージ */
+/*------------------------------------------------------------*/
+#gameMessage {
+	text-align: center;
+}
+#gameMessage .mainMessage {
+	text-align: center;
+	font-weight: bold;
+	font-size: 32px;
+}
+#gameMessage .subMessage {
+	display: inline-block;
+	padding-left: 1em;
+	font-size: 14px;
+	text-align: left;
+}
