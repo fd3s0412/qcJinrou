@@ -423,35 +423,11 @@ function getResource(req, res) {
 	var url = req.url;
 	console.log(url);
 	if ('/' == url) {
-		fs.readFile('./client.html', 'UTF-8', function(err, data) {
+		fs.readFile('./public/client.html', 'UTF-8', function(err, data) {
 			res.writeHead(200, {
 				'Content-Type' : 'text/html'
 			});
 			res.write(data);
-			res.end();
-		});
-	} else if ('/js/client.js' == url) {
-		fs.readFile('./js/client.js', 'UTF-8', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'text/plain'
-			});
-			res.write(data);
-			res.end();
-		});
-	} else if ('/css/base.css' == url) {
-		fs.readFile('./css/base.css', 'UTF-8', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'text/css'
-			});
-			res.write(data);
-			res.end();
-		});
-	} else if (url.match(/.png/)) {
-		fs.readFile('.' + url, 'binary', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'image/png'
-			});
-			res.write(data, 'binary');
 			res.end();
 		});
 	}
