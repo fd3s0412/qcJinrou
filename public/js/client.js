@@ -141,7 +141,7 @@ $(function() {
 			if (d.deadFlg) addClass = " dead";
 			tag += '<li class="item_user' + addClass + '">';
 			if (d.imageName) {
-				tag += '<img src="/image/' + d.imageName + '" />';
+				tag += '<img src="/public/image/' + d.imageName + '" />';
 			}
 			tag += '<div class="item_name">' + d.userName + '</div>';
 			tag += '<input type="hidden" name="userId" value="' + d._id + '" />';
