@@ -57,8 +57,8 @@ $(function() {
 		this.$nightButton.click(function() {
 			self.clickNightButton();
 		});
-		this.socket.on('showUsers', function(userList) {
-			self.showUsers(userList);
+		this.socket.on('showUsers', function(gameInfo) {
+			self.showUsers(gameInfo);
 		});
 		this.socket.on('clearId', function() {
 			localStorage.removeItem("qcJinrouUserId");
@@ -77,6 +77,9 @@ $(function() {
 		});
 		this.socket.on('gameSet', function(winTeam) {
 			self.gameSet(winTeam);
+		});
+		this.socket.on('actionCompleted', function(completedIdList) {
+			self.actionCompleted(completedIdList);
 		});
 	};
 	// ----------------------------------------------------------------------
@@ -128,8 +131,16 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// 接続中のユーザーを表示.
 	// ----------------------------------------------------------------------
-	Client.prototype.showUsers = function(userList) {
-		this.$userList.empty().append($(this.createTagUserList(userList)));
+	Client.prototype.showUsers = function(gameInfo) {
+		this.$userList.empty().append($(this.createTagUserList(gameInfo.userList)));
+
+		// ゲーム状態に応じてイベントを設定
+		switch (gameInfo.gameStatus) {
+			case "morning":
+				break;
+			case "night":
+				break;
+		}
 	};
 	// ----------------------------------------------------------------------
 	// ユーザー一覧のタグを作成.
@@ -137,8 +148,10 @@ $(function() {
 	Client.prototype.createTagUserList = function(userList) {
 		var tag = "";
 		$.each(userList, function(i, d) {
+			console.log(d);
 			var addClass = "";
 			if (d.deadFlg) addClass = " dead";
+			if (d.morningActionFlg || d.nightActionFlg) addClass = " action_completed";
 			tag += '<li class="item_user' + addClass + '">';
 			if (d.imageName) {
 				tag += '<img src="/image/' + d.imageName + '" />';
@@ -162,8 +175,8 @@ $(function() {
 		$message.hide();
 		$('#gameMessage').empty().append($message);
 		$message.fadeIn();
-		var $itemUser = $('.item_user');
-		$itemUser.click(function() {
+		$(document).off('click', '.item_user');
+		$(document).on('click', '.item_user', function() {
 			console.log(params);
 			if (params.yakushoku === "占い師") {
 				var userName = $(this).find('[name="userName"]').val();
@@ -174,7 +187,7 @@ $(function() {
 				alert("ご回答ありがとうございました。");
 			}
 			self.send('morningAction');
-			$itemUser.off();
+			$(document).off('click', '.item_user');
 		});
 	};
 	// ----------------------------------------------------------------------
@@ -188,13 +201,13 @@ $(function() {
 		$message.hide();
 		$('#gameMessage').empty().append($message);
 		$message.fadeIn();
-		var $itemUser = $('.item_user');
-		$itemUser.click(function() {
+		$(document).off('click', '.item_user');
+		$(document).on('click', '.item_user', function() {
 			var userId = $(this).find('[name="userId"]').val();
 			var userName = $(this).find('[name="userName"]').val();
 			alert(userName + "さんを選択しました。");
 			self.send('nightAction', {userId: userId, userName: userName});
-			$itemUser.off();
+			$(document).off('click', '.item_user');
 		});
 	};
 	// ----------------------------------------------------------------------
@@ -216,9 +229,33 @@ $(function() {
 		});
 	};
 	// ----------------------------------------------------------------------
+	// 行動完了状態を描画する処理.
+	// ----------------------------------------------------------------------
+	Client.prototype.actionCompleted = function(completedIdList) {
+		$('[name="userId"]').each(function(i, d) {
+			var $dom = $(d);
+			var userId = $dom.val();
+			var isExists = false;
+			$.each(completedIdList, function(i, id) {
+				if (id === userId) {
+					isExists = true;
+					return false;
+				}
+			});
+			var $li = $('[name="userId"][value="' + userId + '"]').parents('.item_user').first();
+			if (isExists) {
+				$li.addClass('action_completed');
+			} else {
+				$li.removeClass('action_completed');
+			}
+		});
+	};
+	// ----------------------------------------------------------------------
 	// タイマー.
 	// ----------------------------------------------------------------------
 	Client.prototype.startTimer = function() {
+		var self = this;
+
 		var countdown = function(due) {
 			var now = new Date();
 
@@ -237,7 +274,10 @@ $(function() {
 
 		// console.log(countdown(goal));
 		var count = 0;
-		var timer = setInterval(function() {
+		if (self.timer) {
+			clearInterval(self.timer);
+		}
+		self.timer = setInterval(function() {
 			count++;
 			if (count > (180 * 4)) {
 				timerOff();
@@ -250,7 +290,7 @@ $(function() {
 		}, 250);
 
 		function timerOff() {
-			clearInterval(timer);
+			clearInterval(self.timer);
 		}
 	};
 	new Client();

@@ -1,10 +1,10 @@
 var fs = require('fs');
 var http = require('http');
 var server = http.createServer();
-
-server.on('request', function(req, res) {
-	getResource(req, res);
-});
+var express = require('express')
+var app = express();
+app.use(express.static(__dirname + '/'));
+var server = http.createServer(app);
 
 var io = require('socket.io').listen(server);
 server.listen(8000);
@@ -15,8 +15,7 @@ var msUserCollection = null;
 var trJinrouCollection = null;
 var trShokeiCollection = null;
 MongoClient.connect("mongodb://127.0.0.1:27017/", function(err, db) {
-	if (err)
-		throw err;
+	if (err) throw err;
 	var dbo = db.db("qcJinrou");
 	msUserCollection = dbo.collection("msUser");
 	trJinrouCollection = dbo.collection("trJinrouCollection");
@@ -27,11 +26,12 @@ var MAX_MESSAGES_SIZE = 30;
 var data = {
 	messages : []
 };
+var gameStatus = null;
 io.sockets.on('connection', function(socket) {
 	// ----------------------------------------------------------------------
 	// 接続時初期処理.
 	// ----------------------------------------------------------------------
-	showUsers();
+	showUsers(socket.id);
 	socket.on('saveUser', saveUser);
 	socket.on('clear', clear);
 	socket.on('start', start);
@@ -154,10 +154,17 @@ io.sockets.on('connection', function(socket) {
 	// ----------------------------------------------------------------------
 	// ユーザー一覧描画.
 	// ----------------------------------------------------------------------
-	function showUsers() {
+	function showUsers(socketId) {
+		var gameInfo = {};
+		gameInfo.gameStatus = gameStatus;
 		msUserCollection.find({}).toArray(function(err, result) {
 			// console.log(result);
-			io.sockets.emit('showUsers', result);
+			gameInfo.userList = result;
+			if (socketId) {
+				io.to(socketId).emit('showUsers', gameInfo);
+			} else {
+				io.sockets.emit('showUsers', gameInfo);
+			}
 		});
 	}
 	// ----------------------------------------------------------------------
@@ -176,20 +183,32 @@ io.sockets.on('connection', function(socket) {
 		var set = {$set: {morningActionFlg: true}};
 		msUserCollection.updateMany(where, set, function() {
 			msUserCollection.find({}).toArray(function(err, result) {
+				console.log("朝の行動を完了：" + socket.id);
 				var allUserEndFlg = true;
+				var completedIdList = [];
 				for (var i = 0; i < result.length; i++) {
 					var d = result[i];
-					if (d.morningActionFlg !== true) {
+					if (d.morningActionFlg === true) {
+						console.log("行動完了者名：" + d.userName);
+						completedIdList.push(d._id);
+					} else {
+						console.log("行動未完了者名：" + d.userName);
 						allUserEndFlg = false;
-						return false;
 					}
 				}
 				if (allUserEndFlg) {
+					console.log("朝の行動全員完了");
 					// 全員の行動が完了した場合
 					showMessage("全員の朝の行動が終わりました。話し合いを始めて、誰を処刑するか決めてください。");
 					startTimer();
-					msUserCollection.updateMany({}, {$set: {morningActionFlg: false}});
+					msUserCollection.updateMany({}, {$set: {morningActionFlg: false}}, function() {
+						io.sockets.emit('actionCompleted', completedIdList);
+					});
+				} else {
+					io.sockets.emit('actionCompleted', completedIdList);
 				}
+				console.log("行動完了者リスト：");
+				console.log(completedIdList);
 			});
 		});
 	}
@@ -282,6 +301,7 @@ io.sockets.on('connection', function(socket) {
 	// ステータス変更：朝.
 	// ----------------------------------------------------------------------
 	function morning() {
+		gameStatus = "morning";
 		msUserCollection.find({}).toArray(function(err, result) {
 			for (var i = 0; i < result.length; i++) {
 				var entity = result[i];
@@ -307,6 +327,7 @@ io.sockets.on('connection', function(socket) {
 	// ステータス変更：夜.
 	// ----------------------------------------------------------------------
 	function night() {
+		gameStatus = "night";
 		msUserCollection.find({}).toArray(function(err, result) {
 			for (var i = 0; i < result.length; i++) {
 				var entity = result[i];
@@ -329,50 +350,50 @@ io.sockets.on('connection', function(socket) {
 	// ----------------------------------------------------------------------
 	function isGameSet() {
 		msUserCollection.find({}).toArray(function (err, result) {
-			
+
 			var doesLiveJinrou = function () {
 				var count = 0;
-				
+
 				for (var i = 0; i < result.length; i++) {
 					var entity = result[i];
 					if (!entity.deadFlg && entity.yakushoku === "人狼") {
 						 count++;
 					}
 				}
-				
+
 				console.log("生きている人狼: " + count);
 				return count > 0;
 			};
-			
+
 			var doesLiveMurabito = function () {
 				var count = 0;
-				
+
 				for (var i = 0; i < result.length; i++) {
 					var entity = result[i];
 					if (!entity.deadFlg && entity.yakushoku !== "人狼") {
 						 count++;
 					}
 				}
-				
+
 				console.log("生きている村人: " + count);
 				return count > 0;
 			};
-			
+
 			// -----------------------------------------------------------
 			// main
-			
+
 			var message = null; ;
 			var jinrouLiveFlag = doesLiveJinrou();
 			var murabitoLiveFlag = doesLiveMurabito();
-			
+
 			if (jinrouLiveFlag && !murabitoLiveFlag) {
 				message = "オオカミ陣営の勝利！";
 			}
-			
+
 			if (murabitoLiveFlag && !jinrouLiveFlag) {
 				message = "人間の勝利だ！けだものども";
 			}
-			
+
 			if (message !== null) {
 				io.sockets.emit('gameSet', message);
 			}
@@ -415,44 +436,4 @@ function getDateTime() {
 // ----------------------------------------------------------------------
 function getDateTimeForLog() {
 	return "[" + getDateTime() + "] ";
-}
-// ----------------------------------------------------------------------
-// ソース読込.
-// ----------------------------------------------------------------------
-function getResource(req, res) {
-	var url = req.url;
-	console.log(url);
-	if ('/' == url) {
-		fs.readFile('./client.html', 'UTF-8', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'text/html'
-			});
-			res.write(data);
-			res.end();
-		});
-	} else if ('/js/client.js' == url) {
-		fs.readFile('./js/client.js', 'UTF-8', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'text/plain'
-			});
-			res.write(data);
-			res.end();
-		});
-	} else if ('/css/base.css' == url) {
-		fs.readFile('./css/base.css', 'UTF-8', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'text/css'
-			});
-			res.write(data);
-			res.end();
-		});
-	} else if (url.match(/.png/)) {
-		fs.readFile('.' + url, 'binary', function(err, data) {
-			res.writeHead(200, {
-				'Content-Type' : 'image/png'
-			});
-			res.write(data, 'binary');
-			res.end();
-		});
-	}
 }
