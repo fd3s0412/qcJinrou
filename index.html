@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<link rel="stylesheet" type="text/css" href="/css/base.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/client.js"></script>
+<title>QC人狼</title>
+</head>
+<body>
+	<h1>QC人狼</h1>
+	<div>
+		<h2>名前</h2>
+		<div class="info_area">
+			<input id="userName" type="text" />
+			<input id="kakuteiButton" type="button" class="button_base" value="確定" />
+		</div>
+	</div>
+	<div id="gameMessage"></div>
+	<div>
+		<h2>参加者</h2>
+		<ul id="userList" class="name_with_icon_list">
+			<li>
+				<img src="./image/monster01.png" />
+				<div class="item_name">ＡＢＣＤＥＦ</div>
+			</li>
+			<li class="dead">
+				<img src="./image/monster01.png" />
+				<div class="item_name">ＡＢＣＤＥ</div>
+			</li>
+		</ul>
+	</div>
+	<div>
+		<h2>タイマー</h2>
+		<div id="timer">00:00:00</div>
+	</div>
+	<div>
+		<h2>システムメッセージ</h2>
+		<ul id="messages"></ul>
+	</div>
+	<div>
+		<h2>管理</h2>
+		<div class="button_area">
+			<div><input id="startButton" type="button" class="button_base" value="ゲームスタート" /></div>
+			<div><input id="morningButton" type="button" class="button_base" value="朝の行動" /></div>
+			<div><input id="nightButton" type="button" class="button_base" value="夜の行動" /></div>
+			<div><input id="clearButton" type="button" class="button_base" value="クリア" /></div>
+		</div>
+	</div>
+</body>
+</html>
