@@ -32,7 +32,7 @@ function Player(playerId, userName, io, socket) {
 	this.isReadyToStart = true;
 
 	// クライアント→サーバー用メソッドを準備
-	setCallEventFromClient();
+	//setCallEventFromClient();
 };
 
 /**
@@ -48,10 +48,10 @@ Player.prototype.setCallEventFromClient = function() {
  * @param yakushoku	役職
  */
 Player.prototype.setDefault = function(yakushoku) {
-	setLive(true);
-	setYakushoku(yakushoku);
-	setSelectPlayer(false);
-	setSelectPlayerId("");
+	this.setLive(true);
+	this.setYakushoku(yakushoku);
+	this.setSelectPlayer(false);
+	this.setSelectedPlayerId("");
 };
 
 /**
@@ -59,7 +59,7 @@ Player.prototype.setDefault = function(yakushoku) {
  * @param yakushoku	役職
  */
 Player.prototype.doMorning = function(day) {
-	setMessage(day, "朝");
+	this.setMessage(day, "朝");
 // タイマー（未実装）	this.io.sockets.emit('startTimer');
 };
 
@@ -68,12 +68,12 @@ Player.prototype.doMorning = function(day) {
  * @param yakushoku	役職
  */
 Player.prototype.doNight = function(day) {
-	setSelectPlayerId("");
+	this.setSelectedPlayerId("");
 	if (this.isLive) {
-		setSelectPlayer(true);
-		setMessage(day, "夜");
+		this.setSelectPlayer(true);
+		this.setMessage(day, "夜");
 		// クライアントに処刑者の選択を要求
-		io.sockets.emit('selectShokeisha');
+		this.io.sockets.emit('selectShokeisha');
 		// 処刑者の集計と発表
 		// 各役職に応じた対象者を選択
 	}

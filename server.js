@@ -29,7 +29,18 @@ function createPlayerId(params, callback) {
 // ----------------------------------------------------------------------
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
-	console.log(playerMap[params.playerId]);
+	console.log("add game: " + params.playerId);
+}
+// ----------------------------------------------------------------------
+// コネクション情報を設定.
+// ----------------------------------------------------------------------
+function setSocketId(playerId) {
+	if (playerMap[playerId]) {
+		playerMap[playerId].setSocketId(socket.id);
+		console.log("setSocketId: " + playerId + ", " + socket.id);
+	} else {
+		console.log("not added game: " + playerId);
+	}
 }
 // ----------------------------------------------------------------------
 // ゲームスタート.
@@ -42,9 +53,12 @@ function startGame(params) {
 	// 役職割振り
 	setYakushoku(sankashaList);
 	// 準備完了状態のプレイヤーにゲーム開始共通処理を実施
-	$.each(sankashaList, function(i, d) {
-		d.setDefault();
-	});
+	for (var i = 0; i < sankashaList.length; i++) {
+		sankashaList[i].setDefault();
+	}
+	// 0日目の夜からスタート
+	gameInfo.day = 0;
+	gameInfo.gameTime = "夜";
 	var gameLoop = setInterval(function() {
 		// 全員の行動が完了するまで待機
 		if (gameInfo.gameTime === "夜" &&
@@ -68,6 +82,8 @@ function startGame(params) {
 			});
 			gameInfo.gameTime = "夜";
 		}
+		// debug:
+		clearInterval(gameLoop);
 	}, 1000);
 }
 // ----------------------------------------------------------------------
@@ -76,12 +92,13 @@ function startGame(params) {
 function getSankashaList(playerMap) {
 	var sankashaList = [];
 	var keys = Object.keys(playerMap);
-	$.each(keys, function(i, d) {
+	for (var i = 0; i < keys.length; i++) {
+		var d = keys[i];
 		var player = playerMap[d];
 		if (player.isReadyToStart === true) {
 			sankashaList.push(player);
 		}
-	});
+	}
 	return sankashaList;
 }
 // ----------------------------------------------------------------------
@@ -112,7 +129,7 @@ function addJinro(yakushokuList, sankashaNinzu) {
 // ----------------------------------------------------------------------
 // 人数に応じて村人を追加.
 // ----------------------------------------------------------------------
-function addSmurabito(yakushokuList, sankashaNinzu) {
+function addMurabito(yakushokuList, sankashaNinzu) {
 	for (var i = 0; i < sankashaNinzu; i++) {
 		yakushokuList.push("村人");
 	}
@@ -122,18 +139,18 @@ function addSmurabito(yakushokuList, sankashaNinzu) {
 // UUID生成.
 // ----------------------------------------------------------------------
 function generateUuid() {
-    let chars = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".split("");
-    for (let i = 0, len = chars.length; i < len; i++) {
-        switch (chars[i]) {
-            case "x":
-                chars[i] = Math.floor(Math.random() * 16).toString(16);
-                break;
-            case "y":
-                chars[i] = (Math.floor(Math.random() * 4) + 8).toString(16);
-                break;
-        }
-    }
-    return chars.join("");
+	let chars = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".split("");
+	for (let i = 0, len = chars.length; i < len; i++) {
+		switch (chars[i]) {
+			case "x":
+				chars[i] = Math.floor(Math.random() * 16).toString(16);
+				break;
+			case "y":
+				chars[i] = (Math.floor(Math.random() * 4) + 8).toString(16);
+				break;
+		}
+	}
+	return chars.join("");
 };
 //----------------------------------------------------------------------
 // 配列をシャッフルする.
@@ -174,13 +191,6 @@ io.sockets.on("connection", function(socket) {
 		addGame(params, callback, io, socket);
 	});
 	// 渡されたUUIDとsocketIdを紐づける
-	socket.on("setSocketId", function(playerId) {
-		if (playerMap[playerId]) {
-			playerMap[playerId].setSocketId(socket.id);
-			console.log("setSocketId: " + playerId + ", " + socket.id);
-		} else {
-			console.log("not added game: " + playerId);
-		}
-	});
+	socket.on("setSocketId", setSocketId);
 	socket.on("startGame", startGame);
 });

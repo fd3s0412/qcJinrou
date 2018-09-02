@@ -38,7 +38,10 @@ $(function() {
 				console.log("added game");
 			});
 		});
-		self.$startButton.click();
+		// ゲームスタートボタン
+		self.$startButton.click(function() {
+			self.send("startGame");
+		});
 	};
 	// ----------------------------------------------------------------------
 	// 初期処理.
