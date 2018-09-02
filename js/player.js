@@ -1,86 +1,194 @@
-$(function() {
-	// ----------------------------------------------------------------------
-	// �v���C���[�̏����������N���X.
-	// ----------------------------------------------------------------------
-	function Player(playerId, userName) {
-		// �v���C���[ID
-		this.playerId = playerId;
-		// �v���C���[��
-		this.userName = userName;
-		// �v���C���[�摜
-		this.userImage = "";
-		// �v���C���[�̖�E
-		this.yakushoku = "";
-		// �v���C���[�̑I���\�t���O
-		this.selectFlag = false;
-		// �I���v���C���[ID
-		this.selectedPlayerId = "";
-		// ����
-		this.won = 0;
-		// �s��
-		this.losed = 0;
-		// �Q�[���X�^�[�g���������t���O
-		this.isReadyToStart = false;
-	};
+// ----------------------------------------------------------------------
+// プレイヤーの処理を扱うサーバー用のクラス.
+// ----------------------------------------------------------------------
+function Player(playerId, userName, io, socket) {
+	// クライアントを呼び出し用
+	this.io = io;
+	// クライアントから呼び出され用
+	this.socket = socket;
+	// プレイヤーID
+	this.playerId = playerId;
+	// プレイヤー名
+	this.userName = userName;
+	// ソケットID
+	this.socketId = "";
+	// プレイヤー画像
+	this.userImage = "";
+	// プレイヤーの生死
+	this.isLive = true;
+	// プレイヤーの役職
+	this.yakushoku = "";
+	// メッセージ欄に表示する内容
+	this.message = "";
+	// プレイヤーの選択可否
+	this.canSelectPlayer = false;
+	// 選択プレイヤーID
+	this.selectedPlayerId = "";
+	// 勝数
+	this.won = 0;
+	// 敗数
+	this.losed = 0;
+	// ゲームスタート準備完了フラグ
+	this.isReadyToStart = true;
 
-	/**
-	 * �X�e�[�^�X�X�V �v���C���[��.
-	 * @param userName	�v���C���[��
-	 */
-	Player.prototype.setName = function(userName) {
-		this.userName = userName;
-	};
+	// クライアント→サーバー用メソッドを準備
+	setCallEventFromClient();
+};
 
-	/**
-	 * �X�e�[�^�X�X�V �v���C���[�摜.
-	 * @param userImage	�v���C���[�摜
-	 */
-	Player.prototype.setImage = function(userImage) {
-		this.userImage = userImage;
-	};
+/**
+ * ゲーム開始時に各ステータスを初期化.
+ * @param yakushoku	役職
+ */
+Player.prototype.setCallEventFromClient = function() {
+	this.socket.on('tst', selectedPlayerId);
+};
 
-	/**
-	 * �X�e�[�^�X�X�V ��E.
-	 * @param yakushoku	��E
-	 */
-	Player.prototype.setYakushoku = function(yakushoku) {
-		this.yakushoku = yakushoku;
-	};
+/**
+ * ゲーム開始時に各ステータスを初期化.
+ * @param yakushoku	役職
+ */
+Player.prototype.setDefault = function(yakushoku) {
+	setLive(true);
+	setYakushoku(yakushoku);
+	setSelectPlayer(false);
+	setSelectPlayerId("");
+};
 
-	/**
-	 * �X�e�[�^�X�X�V ��E.
-	 * @param selectFlag	�v���C���[�̑I���\�t���O
-	 */
-	Player.prototype.setSelectFlag = function(selectFlag) {
-		this.selectFlag = selectFlag;
-	};
+/**
+ * 朝の行動処理.
+ * @param yakushoku	役職
+ */
+Player.prototype.doMorning = function(day) {
+	setMessage(day, "朝");
+// タイマー（未実装）	this.io.sockets.emit('startTimer');
+};
 
-	/**
-	 * �X�e�[�^�X�X�V ��E.
-	 * @param selectedPlayerId	�I���v���C���[ID
-	 */
-	Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
-		this.selectedPlayerId = selectedPlayerId;
-	};
+/**
+ * 夜の行動処理.
+ * @param yakushoku	役職
+ */
+Player.prototype.doNight = function(day) {
+	setSelectPlayerId("");
+	if (this.isLive) {
+		setSelectPlayer(true);
+		setMessage(day, "夜");
+		// クライアントに処刑者の選択を要求
+		io.sockets.emit('selectShokeisha');
+		// 処刑者の集計と発表
+		// 各役職に応じた対象者を選択
+	}
+};
 
-	/**
-	 * �X�e�[�^�X�X�V ���s��.
-	 * @param isWon	���s�itrue:����, false:�s�k�j
-	 */
-	Player.prototype.setResult = function(isWon) {
-		if(isWon) {
-			this.won++;
-		} else {
-			this.losed++;
-		}
-	};
+/**
+ * ステータス更新 プレイヤー名.
+ * @param userName	プレイヤー名
+ */
+Player.prototype.setName = function(userName) {
+	this.userName = userName;
+};
 
-	/**
-	 * �X�e�[�^�X�X�V ��E.
-	 * @param isReadyToStart	���������ہitrue:��������, false:�������j
-	 */
-	Player.prototype.setIsReadyToStart = function(isReadyToStart) {
-		this.isReadyToStart = isReadyToStart;
-	};
-	
-});
+/**
+ * ステータス更新 ソケットID.
+ * @param userName	ソケットID
+ */
+Player.prototype.setSocketId = function(socketId) {
+	this.socketId = socketId;
+};
+
+/**
+ * ステータス更新 プレイヤー画像.
+ * @param userImage	プレイヤー画像
+ */
+Player.prototype.setImage = function(userImage) {
+	this.userImage = userImage;
+};
+
+/**
+ * ステータス更新 プレイヤーの生死.
+ * @param userName	プレイヤーの生死（true:生存, false:死亡）
+ */
+Player.prototype.setLive = function(isLive) {
+	this.isLive = isLive;
+};
+
+/**
+ * ステータス更新 役職.
+ * @param yakushoku	役職
+ */
+Player.prototype.setYakushoku = function(yakushoku) {
+	this.yakushoku = yakushoku;
+};
+
+/**
+ * ステータス更新 メッセージ欄に表示する内容.
+ * @param day	日数
+ * @param gameTime	ゲーム状態（朝 or 夜）
+ */
+Player.prototype.setMessage = function(day, gameTime) {
+	var message = "";
+
+	// ゲーム状態に応じてメッセージを設定
+	switch (gameTime) {
+		case "朝":
+			massage = "夜が明けました。";
+		break;
+		case "夜":
+			var targetPlayer = "";
+			if (this.yakushoku === "占い師") {
+				targetPlayer = "役職が知りたい人"
+			// 0日目 ＝ ゲームスタート時
+			} else if (0 < day) {
+				switch (this.yakushoku) {
+					case "人狼":
+						targetPlayer = "食べる人"
+					break;
+					case "狩人":
+						targetPlayer = "人狼から守る人"
+					break;
+				}
+			} else {
+				targetPlayer = "怪しいと思う人"
+			}
+			message = targetPlayer + "を選んでください。";
+		break;
+	}
+
+	this.message = message;
+};
+
+/**
+ * ステータス更新 役職.
+ * @param canSelectPlayer	プレイヤーの選択可否（true:可能, false:不可）
+ */
+Player.prototype.setSelectPlayer = function(canSelectPlayer) {
+	this.canSelectPlayer = canSelectPlayer;
+};
+
+/**
+ * ステータス更新 役職.
+ * @param selectedPlayerId	選択プレイヤーID
+ */
+Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
+	this.selectedPlayerId = selectedPlayerId;
+};
+
+/**
+ * ステータス更新 勝敗数.
+ * @param isWon	勝敗（true:勝利, false:敗北）
+ */
+Player.prototype.setResult = function(isWon) {
+	if(isWon) {
+		this.won++;
+	} else {
+		this.losed++;
+	}
+};
+
+/**
+ * ステータス更新 役職.
+ * @param isReadyToStart	準備完了可否（true:準備完了, false:未完了）
+ */
+Player.prototype.setReadyToStart = function(isReadyToStart) {
+	this.isReadyToStart = isReadyToStart;
+};
+module.exports = Player;
