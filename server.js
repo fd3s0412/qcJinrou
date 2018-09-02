@@ -12,13 +12,13 @@ server.listen(8000);
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var msUserCollection = null;
-var trJinrouCollection = null;
+var trJinroCollection = null;
 var trShokeiCollection = null;
 MongoClient.connect("mongodb://127.0.0.1:27017/", function(err, db) {
 	if (err) throw err;
-	var dbo = db.db("qcJinrou");
+	var dbo = db.db("qcJinro");
 	msUserCollection = dbo.collection("msUser");
-	trJinrouCollection = dbo.collection("trJinrouCollection");
+	trJinroCollection = dbo.collection("trJinroCollection");
 	trShokeiCollection = dbo.collection("trShokeiCollection");
 });
 
@@ -107,7 +107,7 @@ io.sockets.on('connection', function(socket) {
 				io.sockets.emit('clearId');
 			});
 			trShokeiCollection.deleteMany({});
-			trJinrouCollection.deleteMany({});
+			trJinroCollection.deleteMany({});
 		}
 	}
 	// ----------------------------------------------------------------------
@@ -124,7 +124,7 @@ io.sockets.on('connection', function(socket) {
 					shokeiList.push({_id: ObjectId(result[i]._id), count: 0});
 				}
 				trShokeiCollection.insertMany(shokeiList);
-				showUsers();
+				
 			});
 		}
 	}
@@ -133,17 +133,39 @@ io.sockets.on('connection', function(socket) {
 	// ----------------------------------------------------------------------
 	function setYakushoku() {
 		msUserCollection.find({}).toArray(function(err, result) {
-			var yakushokuList = ["人狼", "狂人", "占い師", "村人"];
+			var yakushokuList = ["狂人", "占い師", "霊媒師", "狩人"];
+			yakushokuList = addJinro(yakushokuList, result.length);
+			yakushokuList = addMurabito(yakushokuList, result.length);
 			arrayShuffle(result);
+			arrayShuffle(yakushokuList);
 			for (var i = 0; i < result.length; i++) {
 				var entity = result[i];
-				var yakushoku = yakushokuList[(i >= 4 ? 3 : i)];
+				var yakushoku = yakushokuList[i];
 				var where = {_id: ObjectId(entity._id)};
 				var set = {$set: {yakushoku: yakushoku}};
 				msUserCollection.updateMany(where, set);
 			}
 			showMessage("役職を割り振りました。")
 		});
+	}
+	// ----------------------------------------------------------------------
+	// 人数に応じて人狼を追加.
+	// ----------------------------------------------------------------------
+	function addJinro(yakushokuList, sankashaNinzu) {
+		yakushokuList.push("人狼");
+		for (var i = 0; i < sankashaNinzu / 7; i++) {
+			yakushokuList.push("人狼");
+		}
+		return yakushokuList;
+	}
+	// ----------------------------------------------------------------------
+	// 人数に応じて村人を追加.
+	// ----------------------------------------------------------------------
+	function addSmurabito(yakushokuList, sankashaNinzu) {
+		for (var i = 0; i < sankashaNinzu; i++) {
+			yakushokuList.push("村人");
+		}
+		return yakushokuList;
 	}
 	// ----------------------------------------------------------------------
 	// タイマースタート.
@@ -222,7 +244,7 @@ io.sockets.on('connection', function(socket) {
 			msUserCollection.find(where).toArray(function(err, result) {
 				var yakushoku = result[0].yakushoku;
 				if (yakushoku === "人狼") {
-					trJinrouCollection.insertOne(params);
+					trJinroCollection.insertOne(params);
 				} else {
 					var where = {_id: ObjectId(params.userId)};
 					var set = {$inc: {count: 1}};
@@ -271,26 +293,26 @@ io.sockets.on('connection', function(socket) {
 						});
 
 						// 人狼
-						trJinrouCollection.find({}).toArray(function(err, result) {
-							var jinrouTargetName = "";
+						trJinroCollection.find({}).toArray(function(err, result) {
+							var JinroTargetName = "";
 							for (var i = 0; i < result.length; i++) {
 								if (i > 0) {
-									jinrouTargetName += "、 ";
+									JinroTargetName += "、 ";
 								}
-								jinrouTargetName += '"' + result[i].userName + '" さん';
+								JinroTargetName += '"' + result[i].userName + '" さん';
 								var where = {_id: ObjectId(result[i].userId)};
 								var set = {$set: {deadFlg: true}};
 								msUserCollection.updateMany(where, set, showUsers);
 							}
-							if (jinrouTargetName) {
-								showMessage(jinrouTargetName + "が人狼の餌食になりました。");
+							if (JinroTargetName) {
+								showMessage(JinroTargetName + "が人狼の餌食になりました。");
 							} else {
 								showMessage("人狼の被害者はいませんでした。");
 							}
 						});
 
 						msUserCollection.updateMany({}, {$set: {nightActionFlg: false}});
-						trJinrouCollection.remove();
+						trJinroCollection.remove();
 						trShokeiCollection.updateMany({}, {$set: {count: 0}});
 					}
 				});
@@ -351,7 +373,7 @@ io.sockets.on('connection', function(socket) {
 	function isGameSet() {
 		msUserCollection.find({}).toArray(function (err, result) {
 
-			var doesLiveJinrou = function () {
+			var doesLiveJinro = function () {
 				var count = 0;
 
 				for (var i = 0; i < result.length; i++) {
@@ -383,14 +405,14 @@ io.sockets.on('connection', function(socket) {
 			// main
 
 			var message = null; ;
-			var jinrouLiveFlag = doesLiveJinrou();
+			var JinroLiveFlag = doesLiveJinro();
 			var murabitoLiveFlag = doesLiveMurabito();
 
-			if (jinrouLiveFlag && !murabitoLiveFlag) {
+			if (JinroLiveFlag && !murabitoLiveFlag) {
 				message = "オオカミ陣営の勝利！";
 			}
 
-			if (murabitoLiveFlag && !jinrouLiveFlag) {
+			if (murabitoLiveFlag && !JinroLiveFlag) {
 				message = "人間の勝利だ！けだものども";
 			}
 
