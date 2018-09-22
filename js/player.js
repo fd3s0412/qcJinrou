@@ -49,7 +49,6 @@ Player.prototype.setCallEventFromClient = function() {
  */
 Player.prototype.setDefault = function(yakushoku) {
 	this.setLive(true);
-	this.setYakushoku(yakushoku);
 	this.setSelectPlayer(false);
 	this.setSelectedPlayerId("");
 };
