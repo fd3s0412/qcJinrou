@@ -17,6 +17,16 @@ var data = {
 };
 var gameInfo = {};
 var playerMap = {};
+
+// 人狼勝利フラグ
+var ookamiVictory = false;
+// 村人勝利フラグ
+var murabitoVictory = false;
+
+// 勝利メッセージ
+var victoryMessege;
+// 敗北メッセージ
+var loserMessege;
 // ----------------------------------------------------------------------
 // プレイヤーIDを生成.
 // ----------------------------------------------------------------------
@@ -50,6 +60,7 @@ function setSocketId(playerId) {
 function startGame(params) {
 	// ゲーム情報のステータスをゲーム中に更新
 	gameInfo.status = "ゲーム中";
+	console.log(gameInfo);
 	// 参加者
 	var sankashaList = getSankashaList(playerMap);
 	// 役職割振り
@@ -66,14 +77,20 @@ function startGame(params) {
 		// ゲーム情報をクライアントで描画する
 		//sendGameInfo(gameInfo, sankashaList);
 		// 全員の行動が完了するまで待機
-		if (gameInfo.gameTime === "夜" &&
-				!existsKodoMikanryo(sankashaList)) {
+		if (gameInfo.gameTime === "夜" 
+		//&&!existsKodoMikanryo(sankashaList)
+		) {
 			// 処刑者発表
+			// 勝利判定
+			gameSet(sankashaList);
+			if (ookamiVictory === false && murabitoVictory === false) {
 			// 夜の行動
 			$.each(sankashaList, function(i, d) {
 				d.doNight(gameInfo.day);
 			});
 			gameInfo.gameTime = "朝";
+			
+			}
 		}
 		// 全員の行動が完了するまで待機
 		if (gameInfo.gameTime === "朝" &&
@@ -86,6 +103,14 @@ function startGame(params) {
 				d.doMorning(gameInfo.day);
 			});
 			gameInfo.gameTime = "夜";
+		}
+		
+		if (ookamiVictory === true) {
+			victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
+			loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
+		} else if (murabitoVictory === true) {
+			victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
+			loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
 		}
 		// debug:
 		clearInterval(gameLoop);
@@ -210,3 +235,29 @@ io.sockets.on("connection", function(socket) {
 	socket.on("setSocketId", setSocketId);
 	socket.on("startGame", startGame);
 });
+
+
+
+// ----------------------------------------------------------------------
+// 終了判定.
+// ----------------------------------------------------------------------
+function gameSet(sankashaList) {
+	var liveList = [];
+	var jinrou = "人狼";
+	var jinrouCount = 0;
+	var muraCount = 0;
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (entity.isLive === true && entity.yakushoku === jinrou) {
+			jinrouCount++;
+		} else {
+			muraCount++;
+		}
+	}
+	if (jinrouCount >= muraCount){
+		ookamiVictory = true;
+	} else if (jinrouCount === 0) {
+		murabitoVictory = true;
+	}
+	
+}

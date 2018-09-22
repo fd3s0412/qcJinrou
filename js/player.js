@@ -47,7 +47,7 @@ Player.prototype.setCallEventFromClient = function() {
  * ゲーム開始時に各ステータスを初期化.
  * @param yakushoku	役職
  */
-Player.prototype.setDefault = function(yakushoku) {
+Player.prototype.setDefault = function() {
 	this.setLive(true);
 	this.setSelectPlayer(false);
 	this.setSelectedPlayerId("");
