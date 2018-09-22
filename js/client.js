@@ -19,8 +19,13 @@ $(function() {
 		this.$nightButton = $('#nightButton');
 		// 参加者クリアボタンDom
 		this.$clearButton = $('#clearButton');
+		// 参加者ボタンDom
+		this.$playerButton = $('.Button');
+		// メッセージボックスDom
+		this.$messageDiv = $('div#messageBox')
 		// 通信用オブジェクト
 		this.socket = io.connect();
+
 		// イベント設定
 		this.addEvent();
 		// 初期処理
@@ -37,10 +42,20 @@ $(function() {
 			self.send("addGame", {playerId: self.playerId, userName: userName}, function() {
 				console.log("added game");
 			});
+			return false;
 		});
 		// ゲームスタートボタン
 		self.$startButton.click(function() {
 			self.send("startGame");
+			return false;
+		});
+		// プレイヤーボタン
+		self.$playerButton.click(function() {
+			if (/* Player.canSelectPlayer === true */) {
+				var selectedPlayerId = this.val();
+				self.selectedPlayer(selectedPlayerId);
+			}
+			return false;
 		});
 	};
 	// ----------------------------------------------------------------------
@@ -77,23 +92,30 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// 選択したプレイヤーIDを送信.
 	// ----------------------------------------------------------------------
-	Client.prototype.selectedPlayer = function() {
-		var self = this;
-		
+	Client.prototype.selectedPlayer = function(selectedPlayerId) {
+		self.send(postSelectPlayer, {playerId: this.playerId, selectedPlayerId: selectedPlayerId});
 	}
 	// ----------------------------------------------------------------------
-	// テストボタン押下処理.
+	// サーバーから受け取ったメッセージを画面に表示.
 	// ----------------------------------------------------------------------
-	Client.prototype.clickTestButton = function() {
-		var tag = "";
-		var testMsg = "これは表示テストです。"
-		tag = '<h2>テスト</h2><div class="mainMessage">' + testMsg + '</div>';
-		var $message = $(tag);
-		
-		// サーバーに情報をイベント経由で送信
-//		self.send('nightAction', {userId: userId, userName: userName});
-
+	Client.prototype.setMessage = function(message) {
+		var tag = "<span";
+		var tag += ">" + message + "</span>";
+		this.$messageDiv.html(tag);
 	};
+	// ----------------------------------------------------------------------
+	// フォーム部分の活性状態を変更.
+	// ----------------------------------------------------------------------
+	Client.prototype.resetForm = function(canAction) {
+		if (canAction === true) {
+			$kakuteiButton.removeClass("notAction");
+			$playerButton.removeClass("notAction");
+		} else {
+			$kakuteiButton.addClass("notAction");
+			$playerButton.addClass("notAction");
+		}
+	};
+
 
 	new Client();
 });
