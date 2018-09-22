@@ -29,6 +29,7 @@ function createPlayerId(params, callback) {
 // ----------------------------------------------------------------------
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
+	playerMap[params.playerId].set
 	console.log("add game: " + params.playerId);
 }
 // ----------------------------------------------------------------------
@@ -59,7 +60,10 @@ function startGame(params) {
 	// 0日目の夜からスタート
 	gameInfo.day = 0;
 	gameInfo.gameTime = "夜";
+	sendGameInfo(gameInfo, sankashaList);
 	var gameLoop = setInterval(function() {
+		// ゲーム情報をクライアントで描画する
+		//sendGameInfo(gameInfo, sankashaList);
 		// 全員の行動が完了するまで待機
 		if (gameInfo.gameTime === "夜" &&
 				!existsKodoMikanryo(sankashaList)) {
@@ -85,6 +89,17 @@ function startGame(params) {
 		// debug:
 		clearInterval(gameLoop);
 	}, 1000);
+}
+// ----------------------------------------------------------------------
+// ゲーム情報をクライアントに送信.
+// ----------------------------------------------------------------------
+function sendGameInfo(gameInfo, sankashaList) {
+	for (var i = 0; i < sankashaList.length; i++) {
+		var sankasha = sankashaList[i];
+		console.log('showGameInfo');
+		console.log(sankasha);
+		io.to(sankasha.socketId).emit('showGameInfo');
+	}
 }
 // ----------------------------------------------------------------------
 // 参加者リストを返す.
