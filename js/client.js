@@ -49,7 +49,7 @@ $(function() {
 		});
 		// プレイヤーボタン
 		self.$playerButton.click(function() {
-			if (/* Player.canSelectPlayer === true */) {
+			if (/* Player.canSelectPlayer === */true) {
 				var selectedPlayerId = this.val();
 				self.selectedPlayer(selectedPlayerId);
 			}
@@ -97,7 +97,7 @@ $(function() {
 	// ----------------------------------------------------------------------
 	Client.prototype.setMessage = function(message) {
 		var tag = "<span";
-		var tag += ">" + message + "</span>";
+		var tag = tag + ">" + message + "</span>";
 		this.$messageDiv.html(tag);
 	};
 	// ----------------------------------------------------------------------
