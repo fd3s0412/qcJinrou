@@ -63,7 +63,6 @@ function startGame(params) {
 	var sankashaList = getSankashaList(playerMap);
 	// 役職割振り
 	setYakushoku(sankashaList);
-	console.log(sankashaList);
 	// 準備完了状態のプレイヤーにゲーム開始共通処理を実施
 	for (var i = 0; i < sankashaList.length; i++) {
 		sankashaList[i].setDefault();
@@ -108,9 +107,6 @@ function startGame(params) {
 			victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
 			loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
 		}
-		console.log(victoryMessege);
-		console.log(loserMessege);
-		
 		// debug:
 		clearInterval(gameLoop);
 	}, 1000);
@@ -241,12 +237,7 @@ function gameSet(sankashaList) {
 		} else {
 			muraCount++;
 		}
-	console.log(entity.isLive);
-	console.log(entity.yakushoku);
-	console.log(jinrouCount);
-	console.log(muraCount);
 	}
-	jinrouCount = 0;
 	if (jinrouCount >= muraCount){
 		ookamiVictory = true;
 	} else if (jinrouCount === 0) {
