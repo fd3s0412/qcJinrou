@@ -42,12 +42,10 @@ $(function() {
 			self.send("addGame", {playerId: self.playerId, userName: userName}, function() {
 				console.log("added game");
 			});
-			return false;
 		});
 		// ゲームスタートボタン
 		self.$startButton.click(function() {
 			self.send("startGame");
-			return false;
 		});
 		// プレイヤーボタン
 		self.$playerButton.click(function() {
@@ -55,7 +53,6 @@ $(function() {
 				var selectedPlayerId = this.val();
 				self.selectedPlayer(selectedPlayerId);
 			}
-			return false;
 		});
 	};
 	// ----------------------------------------------------------------------
