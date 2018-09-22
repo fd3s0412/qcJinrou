@@ -29,7 +29,8 @@ function createPlayerId(params, callback) {
 // ----------------------------------------------------------------------
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
-	playerMap[params.playerId].set
+	playerMap[params.playerId].setSocketId(socket.id);
+	console.log(playerMap[params.playerId]);
 	console.log("add game: " + params.playerId);
 }
 // ----------------------------------------------------------------------
