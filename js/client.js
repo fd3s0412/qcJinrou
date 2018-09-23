@@ -39,6 +39,7 @@ $(function() {
 		// 確定ボタン
 		self.$kakuteiButton.click(function() {
 			var userName = self.$userName.val();
+			localStorage.setItem(CONST_USER_NAME, userName);
 			self.send("addGame", {playerId: self.playerId, userName: userName}, function() {
 				console.log("added game");
 			});
@@ -72,11 +73,11 @@ $(function() {
 				localStorage.setItem(CONST_USR_ID, result);
 				self.playerId = result;
 				// UUIDとsokcketIdを紐づける
-				self.send("setSocketId", self.playerId);
+				self.send("updateSocketId", self.playerId);
 			});
 		} else {
 			// UUIDとsokcketIdを紐づける
-			self.send("setSocketId", self.playerId);
+			self.send("updateSocketId", self.playerId);
 		}
 		// 前回入力した名前を復元
 		var userName = localStorage.getItem(CONST_USER_NAME);

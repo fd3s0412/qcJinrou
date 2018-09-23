@@ -42,13 +42,14 @@ function createPlayerId(params, callback) {
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
 	playerMap[params.playerId].setSocketId(socket.id);
-	console.log(playerMap[params.playerId]);
+	playerMap[params.playerId].setImage()
+	//console.log(playerMap[params.playerId]);
 	console.log("add game: " + params.playerId);
 }
 // ----------------------------------------------------------------------
 // コネクション情報を設定.
 // ----------------------------------------------------------------------
-function setSocketId(playerId, socket) {
+function updateSocketId(playerId, socket) {
 	if (playerMap[playerId]) {
 		playerMap[playerId].setSocketId(socket.id);
 		console.log("setSocketId: " + playerId + ", " + socket.id);
@@ -262,8 +263,8 @@ io.sockets.on("connection", function(socket) {
 		addGame(params, callback, io, socket);
 	});
 	// 渡されたUUIDとsocketIdを紐づける
-	socket.on("setSocketId", function(playerId) {
-		setSocketId(playerId, socket);
+	socket.on("updateSocketId", function(playerId) {
+		updateSocketId(playerId, socket);
 	});
 	socket.on("startGame", startGame);
 });

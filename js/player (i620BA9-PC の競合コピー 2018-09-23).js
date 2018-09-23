@@ -192,7 +192,7 @@ Player.prototype.setReadyToStart = function(isReadyToStart) {
 };
 
 /**
- * サーバからのゲーム情報とプレイヤー情報を行動判定用に端末側へ送信.
+ * サーバから　のアクションを端末側で実行.
  * @param gemeInfo 
  */
 Player.prototype.sendPlayerInfo = function(gameInfo) {
@@ -202,8 +202,9 @@ Player.prototype.sendPlayerInfo = function(gameInfo) {
  * io.socket.emitできる形式に変換.
  */
 Player.convertToSend = function(list) {
+	console.log("convertToSend");
 	var result = [];
-	for (var i = 0; i < list.length; i++) {
+	for (var i = 0; i < list; i++) {
 		var entity = list[i];
 		result.push({
 			// プレイヤーID
@@ -217,7 +218,7 @@ Player.convertToSend = function(list) {
 			// プレイヤーの生死
 			isLive : entity.isLive,
 			// プレイヤーの役職
-//			yakushoku : entity.yakushoku,
+			yakushoku : entity.yakushoku,
 			// メッセージ欄に表示する内容
 //			message : entity.message,
 			// プレイヤーの選択可否
