@@ -15,7 +15,9 @@ var MAX_MESSAGES_SIZE = 30;
 var data = {
 	messages : []
 };
+// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か）
 var gameInfo = {};
+// プレイヤーマップ（プレイヤーIDをキーにしたプレイヤークラス格納マップ）
 var playerMap = {};
 
 // 人狼勝利フラグ
@@ -46,7 +48,7 @@ function addGame(params, callback, io, socket) {
 // ----------------------------------------------------------------------
 // コネクション情報を設定.
 // ----------------------------------------------------------------------
-function setSocketId(playerId) {
+function setSocketId(playerId, socket) {
 	if (playerMap[playerId]) {
 		playerMap[playerId].setSocketId(socket.id);
 		console.log("setSocketId: " + playerId + ", " + socket.id);
@@ -72,10 +74,9 @@ function startGame(params) {
 	// 0日目の夜からスタート
 	gameInfo.day = 0;
 	gameInfo.gameTime = "夜";
-	sendGameInfo(gameInfo, sankashaList);
 	var gameLoop = setInterval(function() {
 		// ゲーム情報をクライアントで描画する
-		//sendGameInfo(gameInfo, sankashaList);
+		sendGameInfo(gameInfo, sankashaList);
 		// 全員の行動が完了するまで待機
 		if (gameInfo.gameTime === "夜" 
 		//&&!existsKodoMikanryo(sankashaList)
@@ -113,7 +114,7 @@ function startGame(params) {
 			loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
 		}
 		// debug:
-		clearInterval(gameLoop);
+		//clearInterval(gameLoop);
 	}, 1000);
 }
 // ----------------------------------------------------------------------
@@ -122,9 +123,7 @@ function startGame(params) {
 function sendGameInfo(gameInfo, sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		var sankasha = sankashaList[i];
-		console.log('showGameInfo');
-		console.log(sankasha);
-		io.to(sankasha.socketId).emit('showGameInfo');
+		io.to(sankasha.socketId).emit('showGameInfo', {gameInfo: gameInfo, sankashaList: Player.convertToSend(sankashaList)});
 	}
 }
 // ----------------------------------------------------------------------
@@ -231,24 +230,9 @@ function doMorning(day) {}
 // 夜の行動を開始する.
 // ----------------------------------------------------------------------
 function doNight(day) {}
-// ----------------------------------------------------------------------
-// 接続処理.
-// ----------------------------------------------------------------------
-io.sockets.on("connection", function(socket) {
-	socket.on("createPlayerId", createPlayerId);
-	socket.on("addGame", function(params, callback) {
-		addGame(params, callback, io, socket);
-	});
-	// 渡されたUUIDとsocketIdを紐づける
-	socket.on("setSocketId", setSocketId);
-	socket.on("startGame", startGame);
-});
-
-
-
-// ----------------------------------------------------------------------
+//----------------------------------------------------------------------
 // 終了判定.
-// ----------------------------------------------------------------------
+//----------------------------------------------------------------------
 function gameSet(sankashaList) {
 	var liveList = [];
 	var jinrou = "人狼";
@@ -269,3 +253,17 @@ function gameSet(sankashaList) {
 	}
 	
 }
+// ----------------------------------------------------------------------
+// 接続処理.
+// ----------------------------------------------------------------------
+io.sockets.on("connection", function(socket) {
+		socket.on("createPlayerId", createPlayerId);
+	socket.on("addGame", function(params, callback) {
+		addGame(params, callback, io, socket);
+	});
+	// 渡されたUUIDとsocketIdを紐づける
+	socket.on("setSocketId", function(playerId) {
+		setSocketId(playerId, socket);
+	});
+	socket.on("startGame", startGame);
+});

@@ -54,6 +54,10 @@ $(function() {
 				self.selectedPlayer(selectedPlayerId);
 			}
 		});
+		// ゲーム情報表示
+		self.socket.on("showGameInfo", function(gameInfo) {
+			self.showGameInfo(gameInfo);
+		});
 	};
 	// ----------------------------------------------------------------------
 	// 初期処理.
@@ -112,7 +116,11 @@ $(function() {
 			$playerButton.addClass("notAction");
 		}
 	};
-
-
+	// ----------------------------------------------------------------------
+	// フォーム部分の活性状態を変更.
+	// ----------------------------------------------------------------------
+	Client.prototype.showGameInfo = function(gameInfo) {
+		this.$userList.empty().text(JSON.stringify(gameInfo));
+	};
 	new Client();
 });
