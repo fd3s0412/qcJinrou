@@ -11,3 +11,6 @@ var DO_URANAISHI = "役職が知りたい";
 var DO_KARIUDO = "人狼から守る";
 var DO_MURABITO = "怪しいと思う";
 
+var RESULT_EVENING = "が処刑されることになりました。";
+var RESULT_NIGHT_EAT = "が人狼に食べられました。";
+var RESULT_NIGHT_SAVE = "今夜の被害者はいませんでした。";
