@@ -19,7 +19,7 @@ function Player(playerId, userName, io, socket) {
 	// プレイヤーの役職
 	this.yakushoku = "";
 	// メッセージ欄に表示する内容
-	this.message = "";
+//	this.message = "";
 	// プレイヤーの選択可否
 	this.canSelectPlayer = false;
 	// 選択プレイヤーID
@@ -47,7 +47,7 @@ Player.prototype.setCallEventFromClient = function() {
  * ゲーム開始時に各ステータスを初期化.
  * @param yakushoku	役職
  */
-Player.prototype.setDefault = function(yakushoku) {
+Player.prototype.setDefault = function() {
 	this.setLive(true);
 	this.setSelectPlayer(false);
 	this.setSelectedPlayerId("");
@@ -189,5 +189,49 @@ Player.prototype.setResult = function(isWon) {
  */
 Player.prototype.setReadyToStart = function(isReadyToStart) {
 	this.isReadyToStart = isReadyToStart;
+};
+
+/**
+ * サーバからのゲーム情報とプレイヤー情報を行動判定用に端末側へ送信.
+ * @param gemeInfo 
+ */
+Player.prototype.sendPlayerInfo = function(gameInfo) {
+	io.to(this.socketId).emit('checkClient', gameInfo, {isLive: this.isLive, yakushoku: this.yakushoku, canSelectPlayer: this.canSelectPlayer, selectedPlayerId: selectedPlayerId});
+}
+/**
+ * io.socket.emitできる形式に変換.
+ */
+Player.convertToSend = function(list) {
+	var result = [];
+	for (var i = 0; i < list.length; i++) {
+		var entity = list[i];
+		result.push({
+			// プレイヤーID
+			playerId : entity.playerId,
+			// プレイヤー名
+			userName : entity.userName,
+			// ソケットID
+//			socketId : entity.socketId,
+			// プレイヤー画像
+			userImage : entity.userImage,
+			// プレイヤーの生死
+			isLive : entity.isLive,
+			// プレイヤーの役職
+//			yakushoku : entity.yakushoku,
+			// メッセージ欄に表示する内容
+//			message : entity.message,
+			// プレイヤーの選択可否
+			canSelectPlayer : entity.canSelectPlayer,
+			// 選択プレイヤーID
+			selectedPlayerId : entity.selectedPlayerId,
+			// 勝数
+			won : entity.won,
+			// 敗数
+			losed : entity.losed,
+			// ゲームスタート準備完了フラグ
+			isReadyToStart : entity.isReadyToStart
+		});
+	}
+	return result;
 };
 module.exports = Player;
