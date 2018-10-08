@@ -95,10 +95,13 @@ $(function() {
 	// 選択したプレイヤーIDを送信.
 	// ----------------------------------------------------------------------
 	Client.prototype.selectedPlayer = function(selectedPlayerId) {
+		// 画面操作：不可に変更
+		resetForm(false);
+		// サーバと通信
 		self.send(postSelectPlayer, {playerId: this.playerId, selectedPlayerId: selectedPlayerId});
 	}
 	// ----------------------------------------------------------------------
-	// サーバーから受け取ったメッセージを画面に表示.
+	// メッセージを画面に表示.
 	// ----------------------------------------------------------------------
 	Client.prototype.setMessage = function(message) {
 		var tag = "<span";
@@ -121,34 +124,54 @@ $(function() {
 	// ゲーム状態の判定.
 	// ----------------------------------------------------------------------
 	Client.prototype.actionBranch = function(gameInfo, sankashaList){
-		if () {}
-		else if () {}
-		else if () {}
-		else if () {}
+		if ("ゲーム中" !== gameInfo.status) {
+			showResult(gameInfo);
+		}
+		else if ("朝" === gameInfo.gameTime) {
+			doMorning(gameInfo);
+		}
+		else if ("夕方" === gameInfo.gameTime) {
+			doEvening(gameInfo);
+		}
+		else if ("夜" === gameInfo.gameTime) {
+			doNight(gameInfo);
+		}
 	}
 	// ----------------------------------------------------------------------
 	// 朝の行動を開始する.
 	// ----------------------------------------------------------------------
-	function doMorning(day) {
+	function doMorning(gameInfo) {
+		// タイマーの表示
 	}
 	// ----------------------------------------------------------------------
 	// 夕方の行動を開始する.
 	// ----------------------------------------------------------------------
-	function doEvening(day) {
+	function doEvening(gameInfo) {
 		// 処刑者の選択
-		sendGameInfo()
+		setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
+		// 画面の表示設定
+		sendGameInfo(gameInfo)
 	}
 	// ----------------------------------------------------------------------
 	// 夜の行動を開始する.
 	// ----------------------------------------------------------------------
-	function doNight(day) {
-		// 処刑者の選択
-		sendGameInfo()
+	function doNight(gameInfo) {
+		// 各役職の対象者選択
+		setMessage(DO_JINRO + SELECT_PEOPLE_MESSAGE);	// 例：人狼の場合
+		// 画面の表示設定
+		sendGameInfo(gameInfo)
 	}
 	// ----------------------------------------------------------------------
 	// ゲーム結果の表示をする.
 	// ----------------------------------------------------------------------
-	function showResult(day) {
+	function showResult(gameInfo) {
+	}
+	// ----------------------------------------------------------------------
+	// プレイヤー選択状態を表示をする.
+	// ----------------------------------------------------------------------
+	function sendGameInfo(gameInfo) {
+		// 画面操作：可能に変更
+		resetForm(true);
 	}
 	// ----------------------------------------------------------------------
 	// フォーム部分の活性状態を変更.
