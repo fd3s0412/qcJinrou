@@ -15,8 +15,20 @@ var MAX_MESSAGES_SIZE = 30;
 var data = {
 	messages : []
 };
+// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か）
 var gameInfo = {};
+// プレイヤーマップ（プレイヤーIDをキーにしたプレイヤークラス格納マップ）
 var playerMap = {};
+
+// 人狼勝利フラグ
+var ookamiVictory = false;
+// 村人勝利フラグ
+var murabitoVictory = false;
+
+// 勝利メッセージ
+var victoryMessege;
+// 敗北メッセージ
+var loserMessege;
 // ----------------------------------------------------------------------
 // プレイヤーIDを生成.
 // ----------------------------------------------------------------------
@@ -29,12 +41,15 @@ function createPlayerId(params, callback) {
 // ----------------------------------------------------------------------
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
+	playerMap[params.playerId].setSocketId(socket.id);
+	playerMap[params.playerId].setImage()
+	//console.log(playerMap[params.playerId]);
 	console.log("add game: " + params.playerId);
 }
 // ----------------------------------------------------------------------
 // コネクション情報を設定.
 // ----------------------------------------------------------------------
-function setSocketId(playerId) {
+function updateSocketId(playerId, socket) {
 	if (playerMap[playerId]) {
 		playerMap[playerId].setSocketId(socket.id);
 		console.log("setSocketId: " + playerId + ", " + socket.id);
@@ -48,6 +63,7 @@ function setSocketId(playerId) {
 function startGame(params) {
 	// ゲーム情報のステータスをゲーム中に更新
 	gameInfo.status = "ゲーム中";
+	console.log(gameInfo);
 	// 参加者
 	var sankashaList = getSankashaList(playerMap);
 	// 役職割振り
@@ -60,15 +76,23 @@ function startGame(params) {
 	gameInfo.day = 0;
 	gameInfo.gameTime = "夜";
 	var gameLoop = setInterval(function() {
+		// ゲーム情報をクライアントで描画する
+		sendGameInfo(gameInfo, sankashaList);
 		// 全員の行動が完了するまで待機
-		if (gameInfo.gameTime === "夜" &&
-				!existsKodoMikanryo(sankashaList)) {
+		if (gameInfo.gameTime === "夜" 
+		//&&!existsKodoMikanryo(sankashaList)
+		) {
 			// 処刑者発表
+			// 勝利判定
+			gameSet(sankashaList);
+			if (ookamiVictory === false && murabitoVictory === false) {
 			// 夜の行動
 			$.each(sankashaList, function(i, d) {
 				d.doNight(gameInfo.day);
 			});
 			gameInfo.gameTime = "朝";
+			
+			}
 		}
 		// 全員の行動が完了するまで待機
 		if (gameInfo.gameTime === "朝" &&
@@ -82,9 +106,26 @@ function startGame(params) {
 			});
 			gameInfo.gameTime = "夜";
 		}
+		
+		if (ookamiVictory === true) {
+			victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
+			loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
+		} else if (murabitoVictory === true) {
+			victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
+			loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
+		}
 		// debug:
-		clearInterval(gameLoop);
+		//clearInterval(gameLoop);
 	}, 1000);
+}
+// ----------------------------------------------------------------------
+// ゲーム情報をクライアントに送信.
+// ----------------------------------------------------------------------
+function sendGameInfo(gameInfo, sankashaList) {
+	for (var i = 0; i < sankashaList.length; i++) {
+		var sankasha = sankashaList[i];
+		io.to(sankasha.socketId).emit('showGameInfo', {gameInfo: gameInfo, sankashaList: Player.convertToSend(sankashaList)});
+	}
 }
 // ----------------------------------------------------------------------
 // 参加者リストを返す.
@@ -190,15 +231,40 @@ function doMorning(day) {}
 // 夜の行動を開始する.
 // ----------------------------------------------------------------------
 function doNight(day) {}
+//----------------------------------------------------------------------
+// 終了判定.
+//----------------------------------------------------------------------
+function gameSet(sankashaList) {
+	var liveList = [];
+	var jinrou = "人狼";
+	var jinrouCount = 0;
+	var muraCount = 0;
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (entity.isLive === true && entity.yakushoku === jinrou) {
+			jinrouCount++;
+		} else {
+			muraCount++;
+		}
+	}
+	if (jinrouCount >= muraCount){
+		ookamiVictory = true;
+	} else if (jinrouCount === 0) {
+		murabitoVictory = true;
+	}
+	
+}
 // ----------------------------------------------------------------------
 // 接続処理.
 // ----------------------------------------------------------------------
 io.sockets.on("connection", function(socket) {
-	socket.on("createPlayerId", createPlayerId);
+		socket.on("createPlayerId", createPlayerId);
 	socket.on("addGame", function(params, callback) {
 		addGame(params, callback, io, socket);
 	});
 	// 渡されたUUIDとsocketIdを紐づける
-	socket.on("setSocketId", setSocketId);
+	socket.on("updateSocketId", function(playerId) {
+		updateSocketId(playerId, socket);
+	});
 	socket.on("startGame", startGame);
 });

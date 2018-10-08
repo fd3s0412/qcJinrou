@@ -25,112 +25,12 @@ ul li {
 /*------------------------------------------------------------*/
 /* 入力欄 */
 /*------------------------------------------------------------*/
-input[type="text"],
-input[type="number"] {
+input[type="text"] {
 	width: 12em;
 	border-radius: 4px;
 	border: 1px solid #ddd;
 	padding: 8px;
 	font-size: 16px;
-}
-input[type="number"] {
-	text-align: right;
-}
-/*------------------------------------------------------------*/
-/* テーブル */
-/*------------------------------------------------------------*/
-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-table th,
-table td {
-	border-right: 1px solid #5F5F5F;
-	border-bottom: 1px solid #5F5F5F;
-	padding: 4px 8px;
-	white-space: nowrap;
-}
-table th:first-child,
-table td:first-child {
-	border-left: 1px solid #5F5F5F;
-}
-table th {
-	padding: 4px 8px;
-	background-color: #5F5F5F;
-	color: white;
-}
-table tr:nth-child(even) {
-	background-color: #F8F8F8;
-}
-table.mini {
-	display: inline-block;
-	width: auto;
-	vertical-align: bottom;
-}
-table tr.buy_row {
-	background-color: #fdd;
-}
-table tr.sell_row {
-	background-color: #ddf;
-}
-table tr.songiri_row {
-	background-color: #ccf;
-}
-/*------------------------------------------------------------*/
-/* 株価一覧 */
-/*------------------------------------------------------------*/
-table td.button_bunseki {
-	width: 50px;
-}
-table td.juni {
-	text-align: center;
-}
-table td.shoken_code {
-	text-align: center;
-}
-table td.kaishamei {}
-table td.shijo {
-	text-align: center;
-}
-table td.torihiki_date {
-	text-align: center;
-}
-table td.torihikine {}
-table td.zenjitsuhi_gaku {}
-table td.zenjitsuhi_ritsu {}
-table td.dekidaka {}
-table td.takane {}
-table td.yasune {}
-table td.uehigeritsu {}
-table td.gyoshu {}
-table td.yoku_eigyobi {}
-table td.csv_date {}
-table td.yoku_yoritsuki {}
-table td.yoku_takane {}
-table td.yoku_yasune {}
-table td.kanosei_win {
-	text-align: center;
-}
-table td.kanosei_lose {
-	text-align: center;
-}
-table td.yoritsuki_kairiritsu {}
-table td.judge {
-	text-align: center;
-}
-table td.pips {}
-table td.pips_shisu_bar {
-	padding-left: 0;
-}
-/*------------------------------------------------------------*/
-/* テーブル化 */
-/*------------------------------------------------------------*/
-.table {
-	display: table;
-	width: 100%;
-}
-.table .cell {
-	display: table-cell;
 }
 /*------------------------------------------------------------*/
 /* スクロール領域 */
@@ -140,12 +40,6 @@ table td.pips_shisu_bar {
 	width: 100%;
 	white-space: nowrap;
 	overflow: auto;
-}
-/*------------------------------------------------------------*/
-/* マイナス表示 */
-/*------------------------------------------------------------*/
-.minus {
-	color: red;
 }
 /*------------------------------------------------------------*/
 /* 寄せ */
@@ -247,60 +141,6 @@ h2 {
 	font-size: 1.2em;
 }
 /*------------------------------------------------------------*/
-/* インライン */
-/*------------------------------------------------------------*/
-.inline {
-	display: inline-block !important;
-	vertical-align: top !important;
-}
-/*------------------------------------------------------------*/
-/* バー */
-/*------------------------------------------------------------*/
-.bar {
-	display: inline-block;
-	height: 12px;
-	background-color: #999999;
-}
-.minus_bar {
-	background-color: #ff9999;
-}
-/*------------------------------------------------------------*/
-/* グラフ */
-/*------------------------------------------------------------*/
-.graph_wrapper {
-	max-width: 100%;
-	overflow: auto;
-}
-/*------------------------------------------------------------*/
-/* 定義リスト */
-/*------------------------------------------------------------*/
-div.two_block {
-	display: inline-block;
-	width: 48%;
-}
-dl {
-	display: table;
-	width: 100%;
-	margin: 0;
-	border-bottom: 1px solid #ddd;
-	padding: 0;
-}
-dl dt,
-dl dd {
-	display: table-cell;
-	margin: 0;
-	padding: 5px 10px;
-	white-space: nowrap;
-}
-dl dt {
-	min-width: 7em;
-	width: 9em;
-	border-right: 1px solid #ddd;
-}
-dl dd {
-	font-size: 14px;
-}
-/*------------------------------------------------------------*/
 /* ボタンエリア */
 /*------------------------------------------------------------*/
 .button_area {
@@ -343,18 +183,6 @@ dl dd {
 	display: none;
 }
 /*------------------------------------------------------------*/
-/* メニュー */
-/*------------------------------------------------------------*/
-.header ul.fixed_menu {
-	display: none;
-}
-/*------------------------------------------------------------*/
-/* 利益計算結果 */
-/*------------------------------------------------------------*/
-.riekiKeisanResult {
-	padding-left: 2em;
-}
-/*------------------------------------------------------------*/
 /* ユーザー一覧 */
 /*------------------------------------------------------------*/
 ul.name_with_icon_list {
@@ -364,6 +192,7 @@ ul.name_with_icon_list {
 }
 ul.name_with_icon_list li {
 	display: inline-block;
+	position: relative;
 	min-width: 5em;
 	margin-top: 1em;
 	margin-left: 1em;
@@ -374,6 +203,15 @@ ul.name_with_icon_list li {
 ul.name_with_icon_list li.dead {
 	opacity: 0.25;
 	background-color: #fcc;
+}
+ul.name_with_icon_list li.dead:before {
+	position: absolute;
+	content: "";
+	display: inline-block;
+	top: 0;
+	left: 0;
+	rotate: 45deg;
+	border: 10px 10px 0px 0px solid #000;
 }
 ul.name_with_icon_list li img {
 	display: inline-block;
@@ -388,7 +226,6 @@ ul.name_with_icon_list li .item_name {
 	text-align: center;
 }
 ul.name_with_icon_list li.action_completed {
-	position: relative;
 	opacity: 0.5;
 }
 ul.name_with_icon_list li.action_completed:before {
