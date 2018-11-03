@@ -174,10 +174,23 @@ $(function() {
 		resetForm(true);
 	}
 	// ----------------------------------------------------------------------
-	// フォーム部分の活性状態を変更.
+	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
 		this.$userList.empty().text(JSON.stringify(gameInfo));
+		f
+		var tag = '<li>
+				<img src="./image/monster01.png" />
+				<div class="item_name">ＡＢＣＤＥＦ</div>
+			</li>';
+		this.$userList.empty().html(tag);
 	};
+	// ----------------------------------------------------------------------
+	// サーバからのゲーム情報を画面に描画.
+	// ----------------------------------------------------------------------
+	function showPlayesList(gameInfo) {
+		this.$userList.empty().
+	}
+
 	new Client();
 });
