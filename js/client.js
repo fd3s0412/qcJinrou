@@ -22,7 +22,13 @@ $(function() {
 		// 参加者ボタンDom
 		this.$playerButton = $('.Button');
 		// メッセージボックスDom
-		this.$messageDiv = $('div#messageBox')
+		this.$messageDiv = $('div#messageBox');
+		// ゲーム情報日数
+		this.$gameInfoDay = $('#gameInfoDay');
+		// ゲーム情報朝夜区分
+		this.$gameInfoGameTime = $('#gameInfoGameTime');
+		// ゲーム情報ステータス
+		this.$gameInfoStatus = $('#gameInfoStatus');
 		// 通信用オブジェクト
 		this.socket = io.connect();
 
@@ -177,6 +183,8 @@ $(function() {
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
+		console.log(gameInfo);
+		this.showGameInfoInner(gameInfo.gameInfo);
 		this.$userList.empty().text(JSON.stringify(gameInfo));
 		f
 		var tag = '<li>
@@ -186,11 +194,37 @@ $(function() {
 		this.$userList.empty().html(tag);
 	};
 	// ----------------------------------------------------------------------
+<<<<<<< HEAD
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	function showPlayesList(gameInfo) {
 		this.$userList.empty().
 	}
 
+=======
+	// ゲーム情報部の表示.
+	// ----------------------------------------------------------------------
+	Client.prototype.showGameInfoInner = function(gameInfo) {
+		// 日数
+		this.$gameInfoDay.html(gameInfo.day);
+		// ゲーム時間区分
+		this.$gameInfoGameTime.html(gameInfo.gameTime);
+		// ゲーム状態
+		this.$gameInfoStatus.html(gameInfo.status);
+	};
+	Client.prototype.showPlayers = function(playerList) {
+		for (var i = 0; i < playerList.length; i++) {
+			var player = playerList[i];
+			canSelectPlayer: false
+			isLive: true
+			isReadyToStart: true
+			losed: 0
+			playerId: "79e7cf67-b732-4109-91c2-8d6935945473"
+			selectedPlayerId: ""
+			userName: "test123"
+			won: 0
+		}
+	};
+>>>>>>> 91e659b3dbbe7e591c47ad0215312927e3a67d51
 	new Client();
 });
