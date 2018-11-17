@@ -93,7 +93,7 @@ function addGame(params, callback, io, socket) {
 // ----------------------------------------------------------------------
 function setImage(player) {
 	fs.readdir('./image/', function(err, fileList){
-		console.log(fileList);
+		//console.log(fileList);
 		arrayShuffle(fileList);
 		var imageName = fileList[0];
 		player.setImage(imageName);
