@@ -19,16 +19,56 @@ var data = {
 var gameInfo = {};
 // プレイヤーマップ（プレイヤーIDをキーにしたプレイヤークラス格納マップ）
 var playerMap = {};
+var sankashaList = [];
 
 // 人狼勝利フラグ
 var ookamiVictory = false;
 // 村人勝利フラグ
 var murabitoVictory = false;
-
-// 勝利メッセージ
-var victoryMessege;
-// 敗北メッセージ
-var loserMessege;
+// ----------------------------------------------------------------------
+// 定期サーバー処理.
+// ----------------------------------------------------------------------
+setInterval(function() {
+	// ゲーム情報をクライアントで描画する
+	sendGameInfo(gameInfo, sankashaList);
+	// 全員の行動が完了するまで待機
+	if (gameInfo.gameTime === "夜" 
+	//&&!existsKodoMikanryo(sankashaList)
+	) {
+		// 処刑者発表
+		// 勝利判定
+		gameSet(sankashaList);
+		if (ookamiVictory === false && murabitoVictory === false) {
+			// 夜の行動
+			$.each(sankashaList, function(i, d) {
+				d.doNight(gameInfo.day);
+			});
+			gameInfo.gameTime = "朝";
+		}
+	}
+	// 全員の行動が完了するまで待機
+	if (gameInfo.gameTime === "朝" &&
+			!existsKodoMikanryo(sankashaList)) {
+		gameInfo.day++;
+		// 人狼の被害者発表
+		// ゲーム終了チェック
+		// 朝の行動
+		$.each(sankashaList, function(i, d) {
+			d.doMorning(gameInfo.day);
+		});
+		gameInfo.gameTime = "夜";
+	}
+	
+	if (ookamiVictory === true) {
+		var victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
+		var loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
+	} else if (murabitoVictory === true) {
+		var victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
+		var loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
+	}
+	// debug:
+	//clearInterval(gameLoop);
+}, 500);
 // ----------------------------------------------------------------------
 // プレイヤーIDを生成.
 // ----------------------------------------------------------------------
@@ -42,9 +82,23 @@ function createPlayerId(params, callback) {
 function addGame(params, callback, io, socket) {
 	playerMap[params.playerId] = new Player(params.playerId, params.userName, io, socket);
 	playerMap[params.playerId].setSocketId(socket.id);
-	playerMap[params.playerId].setImage()
+	setImage(playerMap[params.playerId]);
 	//console.log(playerMap[params.playerId]);
+	// 参加者
+	sankashaList = getSankashaList(playerMap);
 	console.log("add game: " + params.playerId);
+}
+// ----------------------------------------------------------------------
+// 画像ファイル名を取得.
+// ----------------------------------------------------------------------
+function setImage(player) {
+	fs.readdir('./image/', function(err, fileList){
+		console.log(fileList);
+		arrayShuffle(fileList);
+		var imageName = fileList[0];
+		player.setImage(imageName);
+	});
+	
 }
 // ----------------------------------------------------------------------
 // コネクション情報を設定.
@@ -65,7 +119,7 @@ function startGame(params) {
 	gameInfo.status = "ゲーム中";
 	console.log(gameInfo);
 	// 参加者
-	var sankashaList = getSankashaList(playerMap);
+	sankashaList = getSankashaList(playerMap);
 	// 役職割振り
 	setYakushoku(sankashaList);
 	// 準備完了状態のプレイヤーにゲーム開始共通処理を実施
@@ -75,48 +129,6 @@ function startGame(params) {
 	// 0日目の夜からスタート
 	gameInfo.day = 0;
 	gameInfo.gameTime = "夜";
-	var gameLoop = setInterval(function() {
-		// ゲーム情報をクライアントで描画する
-		sendGameInfo(gameInfo, sankashaList);
-		// 全員の行動が完了するまで待機
-		if (gameInfo.gameTime === "夜" 
-		//&&!existsKodoMikanryo(sankashaList)
-		) {
-			// 処刑者発表
-			// 勝利判定
-			gameSet(sankashaList);
-			if (ookamiVictory === false && murabitoVictory === false) {
-			// 夜の行動
-			$.each(sankashaList, function(i, d) {
-				d.doNight(gameInfo.day);
-			});
-			gameInfo.gameTime = "朝";
-			
-			}
-		}
-		// 全員の行動が完了するまで待機
-		if (gameInfo.gameTime === "朝" &&
-				!existsKodoMikanryo(sankashaList)) {
-			gameInfo.day++;
-			// 人狼の被害者発表
-			// ゲーム終了チェック
-			// 朝の行動
-			$.each(sankashaList, function(i, d) {
-				d.doMorning(gameInfo.day);
-			});
-			gameInfo.gameTime = "夜";
-		}
-		
-		if (ookamiVictory === true) {
-			victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
-			loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
-		} else if (murabitoVictory === true) {
-			victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
-			loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
-		}
-		// debug:
-		//clearInterval(gameLoop);
-	}, 1000);
 }
 // ----------------------------------------------------------------------
 // ゲーム情報をクライアントに送信.

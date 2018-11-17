@@ -183,25 +183,11 @@ $(function() {
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
-		console.log(gameInfo);
+		//console.log(gameInfo);
+		this.showPlayers(gameInfo.sankashaList);
 		this.showGameInfoInner(gameInfo.gameInfo);
-		this.$userList.empty().text(JSON.stringify(gameInfo));
-		f
-		var tag = '<li>
-				<img src="./image/monster01.png" />
-				<div class="item_name">ＡＢＣＤＥＦ</div>
-			</li>';
-		this.$userList.empty().html(tag);
 	};
 	// ----------------------------------------------------------------------
-<<<<<<< HEAD
-	// サーバからのゲーム情報を画面に描画.
-	// ----------------------------------------------------------------------
-	function showPlayesList(gameInfo) {
-		this.$userList.empty().
-	}
-
-=======
 	// ゲーム情報部の表示.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfoInner = function(gameInfo) {
@@ -212,19 +198,24 @@ $(function() {
 		// ゲーム状態
 		this.$gameInfoStatus.html(gameInfo.status);
 	};
+	// ----------------------------------------------------------------------
+	// プレイヤーリストの表示.
+	// ----------------------------------------------------------------------
 	Client.prototype.showPlayers = function(playerList) {
+		var self = this;
+		var preKey = "pre_" + "playerList";
+		// 前回の描画情報を保持し、変更があった場合のみ再描画する
+		var json = JSON.stringify(playerList);
+		if (self[preKey] === json) return;
+		console.log("showPlayers");
+		self[preKey] = json;
+
+		var tag = "";
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
-			canSelectPlayer: false
-			isLive: true
-			isReadyToStart: true
-			losed: 0
-			playerId: "79e7cf67-b732-4109-91c2-8d6935945473"
-			selectedPlayerId: ""
-			userName: "test123"
-			won: 0
+			tag += '<li data-id="' + player.playerId+ '"><img src="./image/' + player.userImage + '" /><div class="item_name">' + player.userName + '</div></li>';
 		}
+		this.$userList.empty().html(tag);
 	};
->>>>>>> 91e659b3dbbe7e591c47ad0215312927e3a67d51
 	new Client();
 });
