@@ -142,7 +142,10 @@ function sendGameInfo(gameInfo, sankashaList) {
 		io.to(sankasha.socketId).emit('showGameInfo', {
 			gameInfo: gameInfo,
 			sankashaList: Player.convertToSend(sankashaList),
-			playerInfo: {message: sankasha.message}
+			playerInfo: {
+				message: sankasha.message,
+				selectedPlayerId: sankasha.selectedPlayerId
+			}
 		});
 	}
 }
@@ -276,6 +279,14 @@ function isWinJinro(sankashaList) {
 	return false;
 }
 // ----------------------------------------------------------------------
+// プレイヤー選択.
+// ----------------------------------------------------------------------
+function selectPlayer(obj) {
+	var entity = playerMap[obj.playerId];
+	entity.selectedPlayerId = obj.selectedPlayerId;
+	entity.canSelectPlayer = false;
+}
+// ----------------------------------------------------------------------
 // 接続処理.
 // ----------------------------------------------------------------------
 io.sockets.on("connection", function(socket) {
@@ -287,5 +298,8 @@ io.sockets.on("connection", function(socket) {
 	socket.on("updateSocketId", function(playerId) {
 		updateSocketId(playerId, socket);
 	});
+	// ゲームスタート
 	socket.on("startGame", startGame);
+	// プレイヤー選択
+	socket.on("selectPlayer", selectPlayer);
 });

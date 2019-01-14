@@ -57,11 +57,9 @@ $(function() {
 			self.send("startGame");
 		});
 		// プレイヤーボタン
-		self.$playerButton.click(function() {
-			if (/* Player.canSelectPlayer === */true) {
-				var selectedPlayerId = this.val();
-				self.selectedPlayer(selectedPlayerId);
-			}
+		self.$userList.on("click", "li", function() {
+			console.log(this);
+			self.selectPlayer($(this).data("id"));
 		});
 		// ゲーム情報表示
 		self.socket.on("showGameInfo", function(gameInfo) {
@@ -102,11 +100,10 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// 選択したプレイヤーIDを送信.
 	// ----------------------------------------------------------------------
-	Client.prototype.selectedPlayer = function(selectedPlayerId) {
-		// 画面操作：不可に変更
-		resetForm(false);
+	Client.prototype.selectPlayer = function(selectedPlayerId) {
+		var self = this;
 		// サーバと通信
-		self.send(postSelectPlayer, {playerId: this.playerId, selectedPlayerId: selectedPlayerId});
+		self.send("selectPlayer", {playerId: self.playerId, selectedPlayerId: selectedPlayerId});
 	}
 	// ----------------------------------------------------------------------
 	// メッセージを画面に表示.
