@@ -29,6 +29,8 @@ $(function() {
 		this.$gameInfoGameTime = $('#gameInfoGameTime');
 		// ゲーム情報ステータス
 		this.$gameInfoStatus = $('#gameInfoStatus');
+		// メッセージ表示領域
+		this.$gameInfoMessage = $('#messages');
 		// 通信用オブジェクト
 		this.socket = io.connect();
 
@@ -185,18 +187,20 @@ $(function() {
 	Client.prototype.showGameInfo = function(gameInfo) {
 		//console.log(gameInfo);
 		this.showPlayers(gameInfo.sankashaList);
-		this.showGameInfoInner(gameInfo.gameInfo);
+		this.showGameInfoInner(gameInfo.gameInfo, gameInfo.playerInfo);
 	};
 	// ----------------------------------------------------------------------
 	// ゲーム情報部の表示.
 	// ----------------------------------------------------------------------
-	Client.prototype.showGameInfoInner = function(gameInfo) {
+	Client.prototype.showGameInfoInner = function(gameInfo, playerInfo) {
 		// 日数
 		this.$gameInfoDay.html(gameInfo.day);
 		// ゲーム時間区分
 		this.$gameInfoGameTime.html(gameInfo.gameTime);
 		// ゲーム状態
 		this.$gameInfoStatus.html(gameInfo.status);
+		// メッセージ表示
+		this.$gameInfoMessage.html(playerInfo.message);
 	};
 	// ----------------------------------------------------------------------
 	// プレイヤーリストの表示.

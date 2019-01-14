@@ -19,7 +19,7 @@ function Player(playerId, userName, io, socket) {
 	// プレイヤーの役職
 	this.yakushoku = "";
 	// メッセージ欄に表示する内容
-//	this.message = "";
+	this.message = "";
 	// プレイヤーの選択可否
 	this.canSelectPlayer = false;
 	// 選択プレイヤーID
@@ -67,6 +67,7 @@ Player.prototype.doMorning = function(day) {
  * @param yakushoku	役職
  */
 Player.prototype.doNight = function(day) {
+	console.log("doNight");
 	this.setSelectedPlayerId("");
 	if (this.isLive) {
 		this.setSelectPlayer(true);
@@ -200,6 +201,8 @@ Player.prototype.sendPlayerInfo = function(gameInfo) {
 }
 /**
  * io.socket.emitできる形式に変換.
+ * 全員に向けて送信する各プレイヤー情報であるため、
+ * 役職などの他者に知られてはいけない情報はここに書かない点に注意。
  */
 Player.convertToSend = function(list) {
 	var result = [];

@@ -33,39 +33,42 @@ setInterval(function() {
 	sendGameInfo(gameInfo, sankashaList);
 	// 全員の行動が完了するまで待機
 	if (gameInfo.gameTime === "夜" 
-	//&&!existsKodoMikanryo(sankashaList)
+			&& !existsKodoMikanryo(sankashaList)
 	) {
+		console.log("夜");
 		// 処刑者発表
 		// 勝利判定
-		gameSet(sankashaList);
-		if (ookamiVictory === false && murabitoVictory === false) {
-			// 夜の行動
-			$.each(sankashaList, function(i, d) {
-				d.doNight(gameInfo.day);
-			});
-			gameInfo.gameTime = "朝";
+		isWinJinro(sankashaList);
+		// 夜の行動
+		for (var i = 0; i < sankashaList.length; i++) {
+			var d = sankashaList[i];
+			d.doNight(gameInfo.day);
 		}
+		gameInfo.gameTime = "朝";
 	}
 	// 全員の行動が完了するまで待機
-	if (gameInfo.gameTime === "朝" &&
-			!existsKodoMikanryo(sankashaList)) {
+	else if (gameInfo.gameTime === "朝"
+			&& !existsKodoMikanryo(sankashaList)
+	) {
+		console.log("朝");
 		gameInfo.day++;
 		// 人狼の被害者発表
 		// ゲーム終了チェック
 		// 朝の行動
-		$.each(sankashaList, function(i, d) {
+		for (var i = 0; i < sankashaList.length; i++) {
+			var d = sankashaList[i];
 			d.doMorning(gameInfo.day);
-		});
+		}
 		gameInfo.gameTime = "夜";
 	}
 	
-	if (ookamiVictory === true) {
-		var victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
-		var loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
-	} else if (murabitoVictory === true) {
-		var victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
-		var loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
-	}
+//	if (ookamiVictory === true) {
+//		var victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
+//		var loserMessege = "村人陣営の敗北だ...食わないでくれ～(T.T)";
+//	} else if (murabitoVictory === true) {
+//		var victoryMessege = "村人陣営の勝利だ！！人間の力を思い知ったか！(-o-)";
+//		var loserMessege = "狼陣営の敗北だ...へんじがない、ただのしかばねのようだ。";
+//	}
 	// debug:
 	//clearInterval(gameLoop);
 }, 500);
@@ -136,7 +139,11 @@ function startGame(params) {
 function sendGameInfo(gameInfo, sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		var sankasha = sankashaList[i];
-		io.to(sankasha.socketId).emit('showGameInfo', {gameInfo: gameInfo, sankashaList: Player.convertToSend(sankashaList)});
+		io.to(sankasha.socketId).emit('showGameInfo', {
+			gameInfo: gameInfo,
+			sankashaList: Player.convertToSend(sankashaList),
+			playerInfo: {message: sankasha.message}
+		});
 	}
 }
 // ----------------------------------------------------------------------
@@ -235,36 +242,40 @@ function getDateTime() {
 function getDateTimeForLog() {
 	return "[" + getDateTime() + "] ";
 }
-// ----------------------------------------------------------------------
-// 朝の行動を開始する.
-// ----------------------------------------------------------------------
-function doMorning(day) {}
-// ----------------------------------------------------------------------
-// 夜の行動を開始する.
-// ----------------------------------------------------------------------
-function doNight(day) {}
+//----------------------------------------------------------------------
+// 行動未完了存在判定.
+//----------------------------------------------------------------------
+function existsKodoMikanryo(sankashaList) {
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (entity.isLive === true) {
+			if (entity.canSelectPlayer) {
+				return true
+			}
+		}
+	}
+	return false;
+}
 //----------------------------------------------------------------------
 // 終了判定.
 //----------------------------------------------------------------------
-function gameSet(sankashaList) {
-	var liveList = [];
-	var jinrou = "人狼";
+function isWinJinro(sankashaList) {
 	var jinrouCount = 0;
 	var muraCount = 0;
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
-		if (entity.isLive === true && entity.yakushoku === jinrou) {
-			jinrouCount++;
-		} else {
-			muraCount++;
+		if (entity.isLive === true) {
+			if (entity.yakushoku === "人狼") {
+				jinrouCount++;
+			} else {
+				muraCount++;
+			}
 		}
 	}
-	if (jinrouCount >= muraCount){
-		ookamiVictory = true;
-	} else if (jinrouCount === 0) {
-		murabitoVictory = true;
+	if (jinrouCount >= muraCount) {
+		return true;
 	}
-	
+	return false;
 }
 // ----------------------------------------------------------------------
 // 接続処理.
