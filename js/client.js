@@ -235,38 +235,39 @@ $(function() {
 
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
+			var $player = $('li').filter('[data-id="' + player.playerId + '"]')
 			// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
 			if (!playerInfo.isLive) {
-				changePlayerViewDead(player.playerId);
+				self.changePlayerViewDead($player);
 			}
 			// 検査プレイヤーが選択済みの場合（毎秒確認）
 			else if (playerInfo.canSelectPlayer) {
-				changePlayerViewSelected(player.playerId);
+				self.changePlayerViewSelected($player);
 			}
 			// 上記以外の場合、ノーマル状態に設定
 			else {
-				changePlayerViewNomal(player.playerId);
+				self.changePlayerViewNomal($player);
 			}
 
 			// 検査プレイヤーが自分が選択した者の場合（選択時のみ）
 			if (playerInfo.selectedPlayerId) {
-				//changePlayerViewSelectPlayer(player.playerId);
+				//self.changePlayerViewSelectPlayer(player.playerId);
 			}
 
 		}
 	}
 
-	Client.prototype.changePlayerViewSelected = function(playerId) {
-		$('li[data-id="' + playerId + '"]').removeClass("dead");
-		$('li[data-id="' + playerId + '"]').addClass("selected");
+	Client.prototype.changePlayerViewSelected = function($player) {
+		$player.removeClass("dead");
+		$player.addClass("selected");
 	}
 	Client.prototype.changePlayerViewDead = function(playerId) {
-		$('li[data-id="' + playerId + '"]').removeClass("selected");
-		$('li[data-id="' + playerId + '"]').addClass("dead");
+		$player.removeClass("selected");
+		$player.addClass("dead");
 	}
 	Client.prototype.changePlayerViewNomal = function(playerId) {
-		$('li[data-id="' + playerId + '"]').removeClass("selected");
-		$('li[data-id="' + playerId + '"]').removeClass("dead");
+		$player.removeClass("selected");
+		$player.removeClass("dead");
 	}
 
 	new Client();
