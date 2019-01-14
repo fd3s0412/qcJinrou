@@ -184,6 +184,7 @@ $(function() {
 	Client.prototype.showGameInfo = function(gameInfo) {
 		//console.log(gameInfo);
 		this.showPlayers(gameInfo.sankashaList);
+		this.changePlayerView(gameInfo.sankashaList);
 		this.showGameInfoInner(gameInfo.gameInfo, gameInfo.playerInfo);
 	};
 	// ----------------------------------------------------------------------
@@ -252,7 +253,6 @@ $(function() {
 
 		}
 	}
-
 	Client.prototype.changePlayerViewSelected = function(playerId) {
 		$('li[data-id="' + playerId + '"]').removeClass("dead");
 		$('li[data-id="' + playerId + '"]').addClass("selected");

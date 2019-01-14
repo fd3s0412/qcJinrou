@@ -59,6 +59,10 @@ Player.prototype.setDefault = function() {
  */
 Player.prototype.doMorning = function(day) {
 	this.setMessage(day, "朝");
+	if (this.isLive) {
+		// プレイヤーの選択可状態に変更
+		this.canSelectPlayer = true;
+	}
 // タイマー（未実装）	this.io.sockets.emit('startTimer');
 };
 
@@ -70,7 +74,8 @@ Player.prototype.doNight = function(day) {
 	console.log("doNight");
 	this.setSelectedPlayerId("");
 	if (this.isLive) {
-		this.setSelectPlayer(true);
+		// プレイヤーの選択可状態に変更
+		this.canSelectPlayer = true;
 		this.setMessage(day, "夜");
 		// クライアントに処刑者の選択を要求
 		this.io.sockets.emit('selectShokeisha');

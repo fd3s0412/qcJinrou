@@ -35,8 +35,9 @@ setInterval(function() {
 	if (gameInfo.gameTime === "夜" 
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("夜");
+		console.log("夜になりました。");
 		// 処刑者発表
+		executeShokei(sankashaList);
 		// 勝利判定
 		isWinJinro(sankashaList);
 		// 夜の行動
@@ -50,7 +51,7 @@ setInterval(function() {
 	else if (gameInfo.gameTime === "朝"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("朝");
+		console.log("朝になりました。");
 		gameInfo.day++;
 		// 人狼の被害者発表
 		// ゲーム終了チェック
@@ -285,6 +286,11 @@ function selectPlayer(obj) {
 	var entity = playerMap[obj.playerId];
 	entity.selectedPlayerId = obj.selectedPlayerId;
 	entity.canSelectPlayer = false;
+}
+// ----------------------------------------------------------------------
+// 処刑.
+// ----------------------------------------------------------------------
+function executeShokei(playerList) {
 }
 // ----------------------------------------------------------------------
 // 接続処理.
