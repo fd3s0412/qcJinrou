@@ -248,10 +248,8 @@ function getDateTimeForLog() {
 function existsKodoMikanryo(sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
-		if (entity.isLive === true) {
-			if (entity.canSelectPlayer) {
-				return true
-			}
+		if (entity.isLive === true && entity.canSelectPlayer) {
+			return true
 		}
 	}
 	return false;
