@@ -35,8 +35,9 @@ setInterval(function() {
 	if (gameInfo.gameTime === "夜" 
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("夜");
+		console.log("夜になりました。");
 		// 処刑者発表
+		executeShokei(sankashaList);
 		// 勝利判定
 		isWinJinro(sankashaList);
 		// 夜の行動
@@ -50,7 +51,7 @@ setInterval(function() {
 	else if (gameInfo.gameTime === "朝"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("朝");
+		console.log("朝になりました。");
 		gameInfo.day++;
 		// 人狼の被害者発表
 		// ゲーム終了チェック
@@ -142,7 +143,10 @@ function sendGameInfo(gameInfo, sankashaList) {
 		io.to(sankasha.socketId).emit('showGameInfo', {
 			gameInfo: gameInfo,
 			sankashaList: Player.convertToSend(sankashaList),
-			playerInfo: {message: sankasha.message}
+			playerInfo: {
+				message: sankasha.message,
+				selectedPlayerId: sankasha.selectedPlayerId
+			}
 		});
 	}
 }
@@ -276,6 +280,19 @@ function isWinJinro(sankashaList) {
 	return false;
 }
 // ----------------------------------------------------------------------
+// プレイヤー選択.
+// ----------------------------------------------------------------------
+function selectPlayer(obj) {
+	var entity = playerMap[obj.playerId];
+	entity.selectedPlayerId = obj.selectedPlayerId;
+	entity.canSelectPlayer = false;
+}
+// ----------------------------------------------------------------------
+// 処刑.
+// ----------------------------------------------------------------------
+function executeShokei(playerList) {
+}
+// ----------------------------------------------------------------------
 // 接続処理.
 // ----------------------------------------------------------------------
 io.sockets.on("connection", function(socket) {
@@ -287,5 +304,8 @@ io.sockets.on("connection", function(socket) {
 	socket.on("updateSocketId", function(playerId) {
 		updateSocketId(playerId, socket);
 	});
+	// ゲームスタート
 	socket.on("startGame", startGame);
+	// プレイヤー選択
+	socket.on("selectPlayer", selectPlayer);
 });
