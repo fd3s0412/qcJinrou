@@ -38,7 +38,7 @@ $(function() {
 		this.addEvent();
 		// 初期処理
 		this.init();
-	}
+	};
 	// ----------------------------------------------------------------------
 	// イベント設定.
 	// ----------------------------------------------------------------------
@@ -104,7 +104,7 @@ $(function() {
 		var self = this;
 		// サーバと通信
 		self.send("selectPlayer", {playerId: self.playerId, selectedPlayerId: selectedPlayerId});
-	}
+	};
 	// ----------------------------------------------------------------------
 	// メッセージを画面に表示.
 	// ----------------------------------------------------------------------
@@ -117,12 +117,12 @@ $(function() {
 	// フォーム部分の活性状態を変更.
 	// ----------------------------------------------------------------------
 	Client.prototype.resetForm = function(canAction) {
-		if (canAction === true) {
-			$kakuteiButton.removeClass("notAction");
-			$playerButton.removeClass("notAction");
+		if (canAction) {
+			changeBtnEnabled($kakuteiButton);
+			changeBtnEnabled($playerButton);
 		} else {
-			$kakuteiButton.addClass("notAction");
-			$playerButton.addClass("notAction");
+			changeBtnDisabled($kakuteiButton);
+			changeBtnDisabled($playerButton);
 		}
 	};
 	// ----------------------------------------------------------------------
@@ -141,13 +141,15 @@ $(function() {
 		else if ("夜" === gameInfo.gameTime) {
 			doNight(gameInfo);
 		}
-	}
+	};
 	// ----------------------------------------------------------------------
 	// 朝の行動を開始する.
 	// ----------------------------------------------------------------------
 	function doMorning(gameInfo) {
-		// タイマーの表示
-	}
+		// 時刻ボタンの活性状態設定
+		changeBtnDisabled($morningButton);
+		changeBtnEnabled($nightButton);
+	};
 	// ----------------------------------------------------------------------
 	// 夕方の行動を開始する.
 	// ----------------------------------------------------------------------
@@ -156,28 +158,29 @@ $(function() {
 		setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
 		// 画面の表示設定
 		sendGameInfo(gameInfo)
-	}
+	};
 	// ----------------------------------------------------------------------
 	// 夜の行動を開始する.
 	// ----------------------------------------------------------------------
 	function doNight(gameInfo) {
+		changeBtnDisabled($nightButton);
 		// 各役職の対象者選択
 		setMessage(DO_JINRO + SELECT_PEOPLE_MESSAGE);	// 例：人狼の場合
 		// 画面の表示設定
 		sendGameInfo(gameInfo)
-	}
+	};
 	// ----------------------------------------------------------------------
 	// ゲーム結果の表示をする.
 	// ----------------------------------------------------------------------
 	function showResult(gameInfo) {
-	}
+	};
 	// ----------------------------------------------------------------------
 	// プレイヤー選択状態を表示をする.
 	// ----------------------------------------------------------------------
 	function sendGameInfo(gameInfo) {
 		// 画面操作：可能に変更
 		resetForm(true);
-	}
+	};
 	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
@@ -228,10 +231,6 @@ $(function() {
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
 			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
-			console.log($player)
-			console.log(player)
-			console.log(player.isLive)
-			console.log(player.canSelectPlayer)
 			// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
 			if (!player.isLive) {
 				self.changePlayerViewDead($player);
@@ -249,22 +248,30 @@ $(function() {
 			if (player.selectedPlayerId) {
 				//self.changePlayerViewSelectPlayer(player.playerId);
 			}
-
 		}
-	}
+	};
 
 	Client.prototype.changePlayerViewSelected = function($player) {
 		$player.removeClass("dead");
 		$player.addClass("selected");
-	}
-	Client.prototype.changePlayerViewDead = function($player) {
+	};
+	Client.prototype.changePlayerViewDead = function(playerId) {
 		$player.removeClass("selected");
 		$player.addClass("dead");
-	}
-	Client.prototype.changePlayerViewNomal = function($player) {
+	};
+	Client.prototype.changePlayerViewNomal = function(playerId) {
 		$player.removeClass("selected");
 		$player.removeClass("dead");
-	}
+	};
+	// ----------------------------------------------------------------------
+	// ボタン設定変更（活性 and 非活性）.
+	// ----------------------------------------------------------------------
+	Client.prototype.changeBtnDisabled = function($obj) {
+		$obj.setAttribute('disabled', 'disabled');
+	};
+	Client.prototype.changeBtnEnabled = function($obj) {
+		$obj.removeAttribute('disabled');
+	};
 
 	new Client();
 });
