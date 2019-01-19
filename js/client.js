@@ -224,22 +224,20 @@ $(function() {
 	// ----------------------------------------------------------------------
 	Client.prototype.changePlayerView = function(playerList) {
 		var self = this;
-		var preKey = "pre_" + "playerList";
-		// 前回の描画情報を保持し、変更があった場合のみ再描画する
-		var json = JSON.stringify(playerList);
-		if (self[preKey] === json) return;
-		console.log("showPlayers");
-		self[preKey] = json;
-
+		console.log("changePlayerView")
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
-			var $player = $('li').filter('[data-id="' + player.playerId + '"]')
+			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
+			console.log($player)
+			console.log(player)
+			console.log(player.isLive)
+			console.log(player.canSelectPlayer)
 			// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
-			if (!playerInfo.isLive) {
+			if (!player.isLive) {
 				self.changePlayerViewDead($player);
 			}
 			// 検査プレイヤーが選択済みの場合（毎秒確認）
-			else if (playerInfo.canSelectPlayer) {
+			else if (!player.canSelectPlayer) {
 				self.changePlayerViewSelected($player);
 			}
 			// 上記以外の場合、ノーマル状態に設定
@@ -248,7 +246,7 @@ $(function() {
 			}
 
 			// 検査プレイヤーが自分が選択した者の場合（選択時のみ）
-			if (playerInfo.selectedPlayerId) {
+			if (player.selectedPlayerId) {
 				//self.changePlayerViewSelectPlayer(player.playerId);
 			}
 
@@ -259,11 +257,11 @@ $(function() {
 		$player.removeClass("dead");
 		$player.addClass("selected");
 	}
-	Client.prototype.changePlayerViewDead = function(playerId) {
+	Client.prototype.changePlayerViewDead = function($player) {
 		$player.removeClass("selected");
 		$player.addClass("dead");
 	}
-	Client.prototype.changePlayerViewNomal = function(playerId) {
+	Client.prototype.changePlayerViewNomal = function($player) {
 		$player.removeClass("selected");
 		$player.removeClass("dead");
 	}
