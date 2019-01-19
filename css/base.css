@@ -213,6 +213,9 @@ ul.name_with_icon_list li .item_name {
 	white-space: nowrap;
 	text-align: center;
 }
+/*------------------------------------------------------------*/
+/* プレイヤー 死亡状態 */
+/*------------------------------------------------------------*/
 ul.name_with_icon_list li.dead:after {
 	position: absolute;
 	content: "";
@@ -229,14 +232,17 @@ ul.name_with_icon_list li.dead img {
 	filter: grayscale(100%);
 	opacity: 0.75;
 }
-ul.name_with_icon_list li.action_completed {
+/*------------------------------------------------------------*/
+/* プレイヤー 選択完了状態 */
+/*------------------------------------------------------------*/
+ul.name_with_icon_list li.selected {
 	opacity: 0.5;
 }
-ul.name_with_icon_list li.action_completed:before {
+ul.name_with_icon_list li.selected {
 	position: absolute;
 	top: 0;
 	left: 0;
-	content: "行動完了";
+	content: "選択完了";
 	display: inline-block;
 	border: 2px solid #aaf;
 	border-radius: 2px;

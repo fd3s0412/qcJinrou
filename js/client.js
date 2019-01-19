@@ -120,12 +120,12 @@ $(function() {
 	// フォーム部分の活性状態を変更.
 	// ----------------------------------------------------------------------
 	Client.prototype.resetForm = function(canAction) {
-		if (canAction === true) {
-			$kakuteiButton.removeClass("notAction");
-			$playerButton.removeClass("notAction");
+		if (canAction) {
+			changeBtnEnabled($kakuteiButton);
+			changeBtnEnabled($playerButton);
 		} else {
-			$kakuteiButton.addClass("notAction");
-			$playerButton.addClass("notAction");
+			changeBtnDisabled($kakuteiButton);
+			changeBtnDisabled($playerButton);
 		}
 	};
 	// ----------------------------------------------------------------------
@@ -149,7 +149,9 @@ $(function() {
 	// 朝の行動を開始する.
 	// ----------------------------------------------------------------------
 	function doMorning(gameInfo) {
-		// タイマーの表示
+		// 時刻ボタンの活性状態設定
+		changeBtnDisabled($morningButton);
+		changeBtnEnabled($nightButton);
 	}
 	// ----------------------------------------------------------------------
 	// 夕方の行動を開始する.
@@ -164,6 +166,7 @@ $(function() {
 	// 夜の行動を開始する.
 	// ----------------------------------------------------------------------
 	function doNight(gameInfo) {
+		changeBtnDisabled($nightButton);
 		// 各役職の対象者選択
 		setMessage(DO_JINRO + SELECT_PEOPLE_MESSAGE);	// 例：人狼の場合
 		// 画面の表示設定
@@ -235,7 +238,7 @@ $(function() {
 
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
-			var $player = $('li').filter('[data-id="' + player.playerId + '"]')
+			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
 			// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
 			if (!playerInfo.isLive) {
 				self.changePlayerViewDead($player);
@@ -253,22 +256,30 @@ $(function() {
 			if (playerInfo.selectedPlayerId) {
 				//self.changePlayerViewSelectPlayer(player.playerId);
 			}
-
 		}
-	}
+	};
 
 	Client.prototype.changePlayerViewSelected = function($player) {
 		$player.removeClass("dead");
 		$player.addClass("selected");
-	}
+	};
 	Client.prototype.changePlayerViewDead = function(playerId) {
 		$player.removeClass("selected");
 		$player.addClass("dead");
-	}
+	};
 	Client.prototype.changePlayerViewNomal = function(playerId) {
 		$player.removeClass("selected");
 		$player.removeClass("dead");
-	}
+	};
+	// ----------------------------------------------------------------------
+	// ボタン設定変更（活性 and 非活性）.
+	// ----------------------------------------------------------------------
+	Client.prototype.changeBtnEnabled = function($obj) {
+		$obj.setAttribute('disabled', 'disabled');
+	};
+	Client.prototype.changeBtnDisabled = function($obj) {
+		$obj.removeAttribute('disabled');
+	};
 
 	new Client();
 });
