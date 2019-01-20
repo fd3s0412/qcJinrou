@@ -238,7 +238,7 @@ ul.name_with_icon_list li.dead img {
 ul.name_with_icon_list li.selected {
 	opacity: 0.5;
 }
-ul.name_with_icon_list li.selected {
+ul.name_with_icon_list li.selected:before {
 	position: absolute;
 	top: 0;
 	left: 0;

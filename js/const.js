@@ -1,3 +1,6 @@
+var GAME_TIME_MONING = "朝";
+var GAME_TIME_EVENING = "夕方";
+var GAME_TIME_NIGHT = "夜";
 var NOW_GAME_MESSAGE = "ゲーム中";
 var NIGHT_MESSAGE = "夜になりました。";
 var MONING_MESSAGE = "夜が明けました。";

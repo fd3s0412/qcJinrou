@@ -129,16 +129,16 @@ $(function() {
 	// ゲーム状態の判定.
 	// ----------------------------------------------------------------------
 	Client.prototype.actionBranch = function(gameInfo, sankashaList){
-		if ("ゲーム中" !== gameInfo.status) {
+		if (NOW_GAME_MESSAGE !== gameInfo.status) {
 			showResult(gameInfo);
 		}
-		else if ("朝" === gameInfo.gameTime) {
+		else if (GAME_TIME_MONING === gameInfo.gameTime) {
 			doMorning(gameInfo);
 		}
-		else if ("夕方" === gameInfo.gameTime) {
+		else if (GAME_TIME_EVENING === gameInfo.gameTime) {
 			doEvening(gameInfo);
 		}
-		else if ("夜" === gameInfo.gameTime) {
+		else if (GAME_TIME_NIGHT === gameInfo.gameTime) {
 			doNight(gameInfo);
 		}
 	};
@@ -185,9 +185,9 @@ $(function() {
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
-		//console.log(gameInfo);
+		console.log(gameInfo);
 		this.showPlayers(gameInfo.sankashaList);
-		this.changePlayerView(gameInfo.sankashaList);
+		this.changePlayerView(gameInfo.sankashaList, gameInfo.gameInfo.status);
 		this.showGameInfoInner(gameInfo.gameInfo, gameInfo.playerInfo);
 	};
 	// ----------------------------------------------------------------------
@@ -225,29 +225,37 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// プレイヤーリスト表示設定.
 	// ----------------------------------------------------------------------
-	Client.prototype.changePlayerView = function(playerList) {
+	Client.prototype.changePlayerView = function(playerList, gameStatus) {
 		var self = this;
-		console.log("changePlayerView")
+		console.log(gameStatus);
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
 			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
-			// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
-			if (!player.isLive) {
-				self.changePlayerViewDead($player);
-			}
-			// 検査プレイヤーが選択済みの場合（毎秒確認）
-			else if (!player.canSelectPlayer) {
-				self.changePlayerViewSelected($player);
-			}
-			// 上記以外の場合、ノーマル状態に設定
-			else {
+
+			console.log(gameStatus + "," + player.canSelectPlayer);
+			if (NOW_GAME_MESSAGE !== gameStatus) {
 				self.changePlayerViewNomal($player);
 			}
+			else {
+				// 検査プレイヤーが死亡している場合（ゲームフェーズごと確認）
+				if (!player.isLive) {
+					self.changePlayerViewDead($player);
+				}
+				// 検査プレイヤーが選択済みの場合（毎秒確認）
+				else if (!player.canSelectPlayer) {
+					self.changePlayerViewSelected($player);
+				}
+				// 上記以外の場合、ノーマル状態に設定
+				else {
+					self.changePlayerViewNomal($player);
+				}
 
-			// 検査プレイヤーが自分が選択した者の場合（選択時のみ）
-			if (player.selectedPlayerId) {
-				//self.changePlayerViewSelectPlayer(player.playerId);
+				// 検査プレイヤーが自分が選択した者の場合（選択時のみ）
+				if (player.selectedPlayerId) {
+					//self.changePlayerViewSelectPlayer(player.playerId);
+				}
 			}
+
 		}
 	};
 
@@ -255,11 +263,11 @@ $(function() {
 		$player.removeClass("dead");
 		$player.addClass("selected");
 	};
-	Client.prototype.changePlayerViewDead = function(playerId) {
+	Client.prototype.changePlayerViewDead = function($player) {
 		$player.removeClass("selected");
 		$player.addClass("dead");
 	};
-	Client.prototype.changePlayerViewNomal = function(playerId) {
+	Client.prototype.changePlayerViewNomal = function($player) {
 		$player.removeClass("selected");
 		$player.removeClass("dead");
 	};
