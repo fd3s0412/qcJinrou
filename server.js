@@ -15,7 +15,7 @@ var MAX_MESSAGES_SIZE = 30;
 var data = {
 	messages : []
 };
-// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か）
+// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か, {String} victim: 前の時間の被害者）
 var gameInfo = {};
 // プレイヤーマップ（プレイヤーIDをキーにしたプレイヤークラス格納マップ）
 var playerMap = {};
@@ -59,6 +59,17 @@ setInterval(function() {
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
 			d.doMorning(gameInfo.day);
+		}
+		gameInfo.gameTime = "夕方";
+	}
+	else if (gameInfo.gameTime === "夕方"
+			&& !existsKodoMikanryo(sankashaList)
+	) {
+		console.log("夕方になりました。");
+		// 夕方の行動
+		for (var i = 0; i < sankashaList.length; i++) {
+			var d = sankashaList[i];
+			d.doEvening(gameInfo.day);
 		}
 		gameInfo.gameTime = "夜";
 	}
@@ -287,8 +298,29 @@ function selectPlayer(obj) {
 // ----------------------------------------------------------------------
 // 処刑.
 // ----------------------------------------------------------------------
-function executeShokei(playerList) {
-}
+function executeShokei(sankashaList) {
+	if (gameInfo.day === 0) return;
+/*
+	var vote = [];
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (vote[entity.selectedPlayerId]) {
+			vote[entity.selectedPlayerId] = 1;
+		} else {
+			vote[entity.selectedPlayerId] ++;
+		}
+
+		if (vote.filter(function(item, index){
+			
+		}))
+	}
+	// 処刑者のプレイヤーIDから対象プレイヤーの名前を結果表示・死亡させる。
+	var shokeiId = vote.indexOf(Math.max.apply(null, vote));
+	gameInfo.victim = sankashaList[shokeiId].userName;
+	sankashaList[shokeiId].isLive = false;
+
+	return result;
+*/}
 // ----------------------------------------------------------------------
 // 接続処理.
 // ----------------------------------------------------------------------

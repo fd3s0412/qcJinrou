@@ -18,8 +18,6 @@ function Player(playerId, userName, io, socket) {
 	this.isLive = true;
 	// プレイヤーの役職
 	this.yakushoku = "";
-	// メッセージ欄に表示する内容
-	this.message = "";
 	// プレイヤーの選択可否
 	this.canSelectPlayer = false;
 	// 選択プレイヤーID
@@ -60,14 +58,28 @@ Player.prototype.setDefault = function() {
  * @param yakushoku	役職
  */
 Player.prototype.doMorning = function(day) {
-	this.setMessage(day, "朝");
+	// 各対象者の紐づきと発表
+	// タイマー（未実装）	this.io.sockets.emit('startTimer');
+
+	// 【テスト用】プレイヤーの選択可状態に変更
+	if (this.isLive) {
+		this.canSelectPlayer = true;
+	}
+};
+/**
+ * 夕方の行動処理.
+ * @param yakushoku	役職
+ */
+Player.prototype.doEvening = function(day) {
+	console.log("doEvening");
+	this.setSelectedPlayerId("");
 	if (this.isLive) {
 		// プレイヤーの選択可状態に変更
 		this.canSelectPlayer = true;
+		// クライアントに処刑者の選択を要求
+		this.io.sockets.emit('selectShokeisha');
 	}
-// タイマー（未実装）	this.io.sockets.emit('startTimer');
 };
-
 /**
  * 夜の行動処理.
  * @param yakushoku	役職
@@ -75,13 +87,12 @@ Player.prototype.doMorning = function(day) {
 Player.prototype.doNight = function(day) {
 	console.log("doNight");
 	this.setSelectedPlayerId("");
+	// 処刑者の集計と発表
 	if (this.isLive) {
 		// プレイヤーの選択可状態に変更
 		this.canSelectPlayer = true;
-		this.setMessage(day, "夜");
-		// クライアントに処刑者の選択を要求
-		this.io.sockets.emit('selectShokeisha');
-		// 処刑者の集計と発表
+		// クライアントに対象者の選択を要求
+		this.io.sockets.emit('selectTaishosha');
 		// 各役職に応じた対象者を選択
 	}
 };
@@ -127,43 +138,6 @@ Player.prototype.setYakushoku = function(yakushoku) {
 };
 
 /**
- * ステータス更新 メッセージ欄に表示する内容.
- * @param day	日数
- * @param gameTime	ゲーム状態（朝 or 夜）
- */
-Player.prototype.setMessage = function(day, gameTime) {
-	var message = "";
-
-	// ゲーム状態に応じてメッセージを設定
-	switch (gameTime) {
-		case "朝":
-			massage = "夜が明けました。";
-		break;
-		case "夜":
-			var targetPlayer = "";
-			if (this.yakushoku === "占い師") {
-				targetPlayer = "役職が知りたい人"
-			// 0日目 ＝ ゲームスタート時
-			} else if (0 < day) {
-				switch (this.yakushoku) {
-					case "人狼":
-						targetPlayer = "食べる人"
-					break;
-					case "狩人":
-						targetPlayer = "人狼から守る人"
-					break;
-				}
-			} else {
-				targetPlayer = "怪しいと思う人"
-			}
-			message = targetPlayer + "を選んでください。";
-		break;
-	}
-
-	this.message = message;
-};
-
-/**
  * ステータス更新 役職.
  * @param canSelectPlayer	プレイヤーの選択可否（true:可能, false:不可）
  */
@@ -204,7 +178,16 @@ Player.prototype.setReadyToStart = function(isReadyToStart) {
  * @param gemeInfo 
  */
 Player.prototype.sendPlayerInfo = function(gameInfo) {
-	io.to(this.socketId).emit('checkClient', gameInfo, {isLive: this.isLive, yakushoku: this.yakushoku, canSelectPlayer: this.canSelectPlayer, selectedPlayerId: selectedPlayerId});
+	io.to(this.socketId).emit(
+		'checkClient',
+		gameInfo,
+		{
+			isLive: this.isLive,
+			yakushoku: this.yakushoku,
+			canSelectPlayer: this.canSelectPlayer,
+			selectedPlayerId: selectedPlayerId
+		}
+	);
 }
 /**
  * io.socket.emitできる形式に変換.
@@ -228,8 +211,6 @@ Player.convertToSend = function(list) {
 			isLive : entity.isLive,
 			// プレイヤーの役職
 //			yakushoku : entity.yakushoku,
-			// メッセージ欄に表示する内容
-//			message : entity.message,
 			// プレイヤーの選択可否
 			canSelectPlayer : entity.canSelectPlayer,
 			// 選択プレイヤーID
@@ -250,17 +231,11 @@ Player.convertToSend = function(list) {
  */
 Player.convertToSendMine = function(mine) {
 	var result = {
-		// ソケットID
-//		socketId : mine.socketId,
 		// プレイヤーID
 		playerId : mine.playerId,
 		// プレイヤーの役職
 		yakushoku : mine.yakushoku,
-		// メッセージ欄に表示する内容
-		message: mine.message,
-		// 選択プレイヤーID
-		selectedPlayerId: mine.selectedPlayerId,
-		// 勝数
+		// 勝敗
 		gameResult : mine.thisGameWin
 	};
 	return result;

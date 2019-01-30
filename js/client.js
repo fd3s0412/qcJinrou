@@ -284,7 +284,8 @@ $(function() {
 
 		self.resetMessage();
 
-		if (NOW_GAME_MESSAGE !== gameInfo.status) {
+		if (!gameInfo.status) return;
+		else if (END_GAME_MESSAGE === gameInfo.status) {
 			self.showResult(gameInfo, playerInfo);
 		}
 		else if (GAME_TIME_MONING === gameInfo.gameTime) {
@@ -306,7 +307,8 @@ $(function() {
 
 		self.setMessage(MONING_MESSAGE, false);
 		// 人狼の被害者発表
-		self.setMessage("テストさん" + RESULT_NIGHT_EAT, true);
+		if (gameInfo.day < 1) self.setMessage(gameInfo.victim + RESULT_NIGHT_EAT, true);
+		self.setMessage(START_TALK, true);
 		// 時刻ボタンの活性状態設定
 		self.changeBtnEnabled(self.$eveningButton);
 	};
