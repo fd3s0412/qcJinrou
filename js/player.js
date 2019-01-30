@@ -28,6 +28,8 @@ function Player(playerId, userName, io, socket) {
 	this.won = 0;
 	// 敗数
 	this.losed = 0;
+	// 勝敗
+	this.thisGameWin = null;
 	// ゲームスタート準備完了フラグ
 	this.isReadyToStart = true;
 
@@ -242,4 +244,27 @@ Player.convertToSend = function(list) {
 	}
 	return result;
 };
+/**
+ * io.socket.emitできる形式に変換.
+ * 端末所持者のみに向けて送信する自身のプレイヤー情報。
+ */
+Player.convertToSendMine = function(mine) {
+	var result = {
+		// ソケットID
+//		socketId : mine.socketId,
+		// プレイヤーID
+		playerId : mine.playerId,
+		// プレイヤーの役職
+		yakushoku : mine.yakushoku,
+		// メッセージ欄に表示する内容
+		message: mine.message,
+		// 選択プレイヤーID
+		selectedPlayerId: mine.selectedPlayerId,
+		// 勝数
+		gameResult : mine.thisGameWin
+	};
+	return result;
+};
+
+
 module.exports = Player;

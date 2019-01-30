@@ -143,10 +143,7 @@ function sendGameInfo(gameInfo, sankashaList) {
 		io.to(sankasha.socketId).emit('showGameInfo', {
 			gameInfo: gameInfo,
 			sankashaList: Player.convertToSend(sankashaList),
-			playerInfo: {
-				message: sankasha.message,
-				selectedPlayerId: sankasha.selectedPlayerId
-			}
+			playerInfo: Player.convertToSendMine(sankasha)
 		});
 	}
 }

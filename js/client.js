@@ -15,6 +15,8 @@ $(function() {
 		this.$startButton = $('#startButton');
 		// 朝ボタンDom
 		this.$morningButton = $('#morningButton');
+		// 夕方ボタンDom
+		this.$eveningButton = $('#eveningButton');
 		// 夜ボタンDom
 		this.$nightButton = $('#nightButton');
 		// 参加者クリアボタンDom
@@ -65,6 +67,24 @@ $(function() {
 		self.socket.on("showGameInfo", function(gameInfo) {
 			self.showGameInfo(gameInfo);
 		});
+		// 朝ボタン
+		self.$morningButton.click(function() {
+			console.log("moveMorning");
+			self.send("moveMorning");
+			self.changeBtnDisabled(self.$morningButton);
+		});
+		// 夕方ボタン
+		self.$eveningButton.click(function() {
+			console.log("moveEvening");
+			self.send("moveEvening");
+			self.changeBtnDisabled(self.$eveningButton);
+		});
+		// 夜ボタン
+		self.$nightButton.click(function() {
+			console.log("moveNight");
+			self.send("moveNight");
+			self.changeBtnDisabled(self.$nightButton);
+		});
 	};
 	// ----------------------------------------------------------------------
 	// 初期処理.
@@ -106,102 +126,62 @@ $(function() {
 		self.send("selectPlayer", {playerId: self.playerId, selectedPlayerId: selectedPlayerId});
 	};
 	// ----------------------------------------------------------------------
+	// メッセージdivの内容をリセット.
+	// ----------------------------------------------------------------------
+	Client.prototype.resetMessage = function() {
+		var self = this;
+		self.$messageDiv.html("");
+	};
+	// ----------------------------------------------------------------------
 	// メッセージを画面に表示.
 	// ----------------------------------------------------------------------
-	Client.prototype.setMessage = function(message) {
-		var tag = "<span";
-		var tag = tag + ">" + message + "</span>";
-		this.$messageDiv.html(tag);
-	};
-	// ----------------------------------------------------------------------
-	// フォーム部分の活性状態を変更.
-	// ----------------------------------------------------------------------
-	Client.prototype.resetForm = function(canAction) {
-		if (canAction) {
-			changeBtnEnabled($kakuteiButton);
-			changeBtnEnabled($playerButton);
-		} else {
-			changeBtnDisabled($kakuteiButton);
-			changeBtnDisabled($playerButton);
-		}
-	};
-	// ----------------------------------------------------------------------
-	// ゲーム状態の判定.
-	// ----------------------------------------------------------------------
-	Client.prototype.actionBranch = function(gameInfo, sankashaList){
-		if (NOW_GAME_MESSAGE !== gameInfo.status) {
-			showResult(gameInfo);
-		}
-		else if (GAME_TIME_MONING === gameInfo.gameTime) {
-			doMorning(gameInfo);
-		}
-		else if (GAME_TIME_EVENING === gameInfo.gameTime) {
-			doEvening(gameInfo);
-		}
-		else if (GAME_TIME_NIGHT === gameInfo.gameTime) {
-			doNight(gameInfo);
-		}
-	};
-	// ----------------------------------------------------------------------
-	// 朝の行動を開始する.
-	// ----------------------------------------------------------------------
-	function doMorning(gameInfo) {
-		// 時刻ボタンの活性状態設定
-		changeBtnDisabled($morningButton);
-		changeBtnEnabled($nightButton);
-	};
-	// ----------------------------------------------------------------------
-	// 夕方の行動を開始する.
-	// ----------------------------------------------------------------------
-	function doEvening(gameInfo) {
-		// 処刑者の選択
-		setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
-		// 画面の表示設定
-		sendGameInfo(gameInfo)
-	};
-	// ----------------------------------------------------------------------
-	// 夜の行動を開始する.
-	// ----------------------------------------------------------------------
-	function doNight(gameInfo) {
-		changeBtnDisabled($nightButton);
-		// 各役職の対象者選択
-		setMessage(DO_JINRO + SELECT_PEOPLE_MESSAGE);	// 例：人狼の場合
-		// 画面の表示設定
-		sendGameInfo(gameInfo)
-	};
-	// ----------------------------------------------------------------------
-	// ゲーム結果の表示をする.
-	// ----------------------------------------------------------------------
-	function showResult(gameInfo) {
+	Client.prototype.setMessage = function(message, next) {
+		var self = this;
+		var tag = "";
+		if (next) tag = "<br />";
+		tag += "<span>" + message + "</span>";
+		self.$messageDiv.append(tag);
 	};
 	// ----------------------------------------------------------------------
 	// プレイヤー選択状態を表示をする.
 	// ----------------------------------------------------------------------
-	function sendGameInfo(gameInfo) {
+	Client.prototype.sendGameInfo = function(gameInfo) {
+		var self = this;
 		// 画面操作：可能に変更
-		resetForm(true);
+		self.resetForm(true);
 	};
 	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
-		console.log(gameInfo);
-		this.showPlayers(gameInfo.sankashaList);
-		this.changePlayerView(gameInfo.sankashaList, gameInfo.gameInfo.status);
+//		console.log(gameInfo);
 		this.showGameInfoInner(gameInfo.gameInfo, gameInfo.playerInfo);
+		this.showPlayers(gameInfo.sankashaList);
+
+		this.changePlayerView(gameInfo.sankashaList, gameInfo.gameInfo.status);
 	};
 	// ----------------------------------------------------------------------
 	// ゲーム情報部の表示.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfoInner = function(gameInfo, playerInfo) {
+		var self = this;
+		var preKey = "pre_" + "gameInfo";
+		// 前回の描画情報を保持し、変更があった場合のみ再描画する
+		var json = JSON.stringify(gameInfo);
+		if (self[preKey] === json) return;
+		console.log("showGameInfoInner");
+		self[preKey] = json;
+
 		// 日数
-		this.$gameInfoDay.html(gameInfo.day);
+		self.$gameInfoDay.html(gameInfo.day);
 		// ゲーム時間区分
-		this.$gameInfoGameTime.html(gameInfo.gameTime);
+		self.$gameInfoGameTime.html(gameInfo.gameTime);
 		// ゲーム状態
-		this.$gameInfoStatus.html(gameInfo.status);
+		self.$gameInfoStatus.html(gameInfo.status);
 		// メッセージ表示
-		this.$gameInfoMessage.html(playerInfo.message);
+		self.$gameInfoMessage.html(playerInfo.message);
+
+		self.actionBranch(gameInfo, playerInfo);
 	};
 	// ----------------------------------------------------------------------
 	// プレイヤーリストの表示.
@@ -227,12 +207,13 @@ $(function() {
 	// ----------------------------------------------------------------------
 	Client.prototype.changePlayerView = function(playerList, gameStatus) {
 		var self = this;
-		console.log(gameStatus);
+//		console.log(gameStatus);
+
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
 			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
 
-			console.log(gameStatus + "," + player.canSelectPlayer);
+//			console.log(gameStatus + "," + player.canSelectPlayer);
 			if (NOW_GAME_MESSAGE !== gameStatus) {
 				self.changePlayerViewNomal($player);
 			}
@@ -272,13 +253,121 @@ $(function() {
 		$player.removeClass("dead");
 	};
 	// ----------------------------------------------------------------------
+	// フォーム部分の活性状態を変更.
+	// ----------------------------------------------------------------------
+	Client.prototype.resetForm = function(canAction) {
+		var self = this;
+		if (canAction) {
+			self.changeBtnEnabled(self.$kakuteiButton);
+			self.changeBtnEnabled(self.$playerButton);
+		} else {
+			self.changeBtnDisabled(self.$kakuteiButton);
+			self.changeBtnDisabled(self.$playerButton);
+		}
+	};
+	// ----------------------------------------------------------------------
 	// ボタン設定変更（活性 and 非活性）.
 	// ----------------------------------------------------------------------
 	Client.prototype.changeBtnDisabled = function($obj) {
-		$obj.setAttribute('disabled', 'disabled');
+		$obj.attr('disabled', 'disabled');
 	};
 	Client.prototype.changeBtnEnabled = function($obj) {
-		$obj.removeAttribute('disabled');
+		$obj.attr('disabled');
+	};
+	// ----------------------------------------------------------------------
+	// ゲーム状態の判定.
+	// ----------------------------------------------------------------------
+	Client.prototype.actionBranch = function(gameInfo, playerInfo){
+		var self = this;
+		console.log("actionBranch");
+		console.log(gameInfo);
+
+		self.resetMessage();
+
+		if (NOW_GAME_MESSAGE !== gameInfo.status) {
+			self.showResult(gameInfo, playerInfo);
+		}
+		else if (GAME_TIME_MONING === gameInfo.gameTime) {
+			self.doMorning(gameInfo);
+		}
+		else if (GAME_TIME_EVENING === gameInfo.gameTime) {
+			self.doEvening(gameInfo, playerInfo);
+		}
+		else if (GAME_TIME_NIGHT === gameInfo.gameTime) {
+			self.doNight(gameInfo, playerInfo);
+		}
+	};
+	// ----------------------------------------------------------------------
+	// 朝の行動を開始する.
+	// ----------------------------------------------------------------------
+	Client.prototype.doMorning = function(gameInfo) {
+		console.log("doMorning");
+		var self = this;
+
+		self.setMessage(MONING_MESSAGE, false);
+		// 人狼の被害者発表
+		self.setMessage("テストさん" + RESULT_NIGHT_EAT, true);
+		// 時刻ボタンの活性状態設定
+		self.changeBtnEnabled(self.$eveningButton);
+	};
+	// ----------------------------------------------------------------------
+	// 夕方の行動を開始する.
+	// ----------------------------------------------------------------------
+	Client.prototype.doEvening = function(gameInfo, playerInfo) {
+		console.log("doEvening");
+		var self = this;
+
+		self.setMessage(EVENING_MESSAGE, false);
+		// 処刑者の選択
+		self.setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
+		// 画面の表示設定
+		self.sendGameInfo(gameInfo)
+	};
+	// ----------------------------------------------------------------------
+	// 夜の行動を開始する.
+	// ----------------------------------------------------------------------
+	Client.prototype.doNight = function(gameInfo, playerInfo) {
+		console.log("doNight");
+		var self = this;
+
+		self.setMessage(NIGHT_MESSAGE, false);
+		var targetPlayer = "";
+		// 各役職の対象者選択
+		if (gameInfo.day === 0) {
+			targetPlayer =
+			 playerInfo.yakushoku === YAKUSHOKU_URANAISHI ? DO_URANAISHI : DO_MURABITO ;
+		} else {
+			switch (playerInfo.yakushoku) {
+				case YAKUSHOKU_JINRO :		// 人狼の場合
+					targetPlayer = DO_JINRO;
+				break;
+				case YAKUSHOKU_URANAISHI :	// 占い師の場合
+					targetPlayer = DO_URANAISHI;
+				break;
+				case YAKUSHOKU_KARIUDO :	// 狩人の場合
+					targetPlayer = DO_KARIUDO;
+				break;
+				default :
+					targetPlayer = DO_MURABITO;
+				break;
+			}
+		}
+		self.setMessage(targetPlayer + SELECT_PEOPLE_MESSAGE, true);
+
+		// 画面の表示設定
+		self.sendGameInfo(gameInfo)
+	};
+	// ----------------------------------------------------------------------
+	// ゲーム結果の表示をする.
+	// ----------------------------------------------------------------------
+	Client.prototype.showResult = function(gameInfo, playerInfo) {
+		console.log("showResult");
+		var self = this;
+
+		var result = playerInfo.yakushoku === YAKUSHOKU_JINRO ? YAKUSHOKU_JINRO : YAKUSHOKU_MURABITO;
+		result += "陣営";
+		result += playerInfo.gameResult ? VICTORY_MESSEGE : LOSER_MESSEGE ;
+		self.setMessage(result, false);
 	};
 
 	new Client();

@@ -2,8 +2,16 @@ var GAME_TIME_MONING = "朝";
 var GAME_TIME_EVENING = "夕方";
 var GAME_TIME_NIGHT = "夜";
 var NOW_GAME_MESSAGE = "ゲーム中";
+
+var YAKUSHOKU_MURABITO = "村人";
+var YAKUSHOKU_JINRO = "人狼";
+var YAKUSHOKU_URANAISHI = "占い師";
+var YAKUSHOKU_KARIUDO = "狩人";
+
+var EVENING_MESSAGE = "夕方になりました。";
 var NIGHT_MESSAGE = "夜になりました。";
 var MONING_MESSAGE = "夜が明けました。";
+
 var VICTORY_MESSEGE = "の勝利だ！！";
 var LOSER_MESSEGE = "の敗北だ...";
 
@@ -17,3 +25,5 @@ var DO_MURABITO = "怪しいと思う";
 var RESULT_EVENING = "が処刑されることになりました。";
 var RESULT_NIGHT_EAT = "が人狼に食べられました。";
 var RESULT_NIGHT_SAVE = "今夜の被害者はいませんでした。";
+
+
