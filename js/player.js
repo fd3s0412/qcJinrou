@@ -22,6 +22,8 @@ function Player(playerId, userName, io, socket) {
 	this.canSelectPlayer = false;
 	// 選択プレイヤーID
 	this.selectedPlayerId = "";
+	// 役職スキルによる選択結果
+	this.skillAnser = false;
 	// 勝数
 	this.won = 0;
 	// 敗数
@@ -235,8 +237,10 @@ Player.convertToSendMine = function(mine) {
 		playerId : mine.playerId,
 		// プレイヤーの役職
 		yakushoku : mine.yakushoku,
-		// 勝敗
-		gameResult : mine.thisGameWin
+		// スキル結果
+		skillAnser : mine.skillAnser,
+		// プレイヤーの生死
+		isLive : mine.isLive
 	};
 	return result;
 };

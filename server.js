@@ -36,10 +36,11 @@ setInterval(function() {
 			&& !existsKodoMikanryo(sankashaList)
 	) {
 		console.log("夜になりました。");
-		// 処刑者発表
+		// 処刑者設定
 		executeShokei(sankashaList);
 		// 勝利判定
 		isWinJinro(sankashaList);
+
 		// 夜の行動
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
@@ -51,10 +52,16 @@ setInterval(function() {
 	else if (gameInfo.gameTime === "朝"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("朝になりました。");
 		gameInfo.day++;
-		// 人狼の被害者発表
+		console.log("朝になりました。");
+
+		// 役職者のスキル処理
+		executeSkill(sankashaList);
+		// 人狼の被害者設定
+		executeEat(sankashaList);
 		// ゲーム終了チェック
+		isWinJinro(sankashaList);
+
 		// 朝の行動
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
@@ -300,27 +307,135 @@ function selectPlayer(obj) {
 // ----------------------------------------------------------------------
 function executeShokei(sankashaList) {
 	if (gameInfo.day === 0) return;
-/*
-	var vote = [];
-	for (var i = 0; i < sankashaList.length; i++) {
+	console.log("executeShokei");
+	// 全てのプレイヤーが投票したプレイヤーIDを取得
+	var shokeishaId = vote(sankashaList);
+	var shokeishaIndex = seachPlayerByPlayerId(sankashaList, shokeishaId);
+	// 処刑されたプレイヤー名をゲーム情報に保存し、死亡させる
+	var victimPlayer = sankashaList[shokeishaIndex] || {};
+	console.log(victimPlayer);
+	gameInfo.victim = victimPlayer.userName;
+	victimPlayer.isLive = false;
+}
+// ----------------------------------------------------------------------
+// 捕食.
+// ----------------------------------------------------------------------
+function executeEat(sankashaList) {
+	if (gameInfo.day === 0) return;
+	// 人狼プレイヤーが投票したプレイヤーIDを取得
+	var jinroList = refinePlayerByYakushoku(sankashaList, "人狼");
+	var hosyokushaId = vote(jinroList);
+	var hosyokushaIndex = seachPlayerByPlayerId(sankashaList, hosyokushaId);
+	// 狩人プレイヤー情報を取得（現在の設定では狩人はゲーム中1人）
+	var kariudoList = refinePlayerByYakushoku(sankashaList, "狩人");
+	if (kariudoList.length > 0) {
+		var kariudo = kariudoList[0];
+		if (kariudo.isLive && kariudo.selectedPlayerId === hosyokushaId){
+			hosyokushaIndex = null;
+		}
+	}
+	// 捕食プレイヤーが存在する場合、プレイヤー名をゲーム情報に保存し、死亡させる
+	if (hosyokushaIndex) {
+		var victimPlayer = sankashaList[hosyokushaIndex];
+		gameInfo.victim = victimPlayer.userName;
+		victimPlayer.isLive = false;
+	} else {
+		gameInfo.victim = null;
+	}
+}
+// ----------------------------------------------------------------------
+// スキルイベント.
+// ----------------------------------------------------------------------
+function executeSkill(sankashaList) {
+	for (var i = 0; i < sankashaList.length; i++){
 		var entity = sankashaList[i];
+		if (!entity.isLive) continue;
+		// 占い師
+		if (entity.yakushoku === "占い師") {
+			var uranaiIndex = seachPlayerByPlayerId(sankashaList, entity.selectedPlayerId);
+			var uranaiPlayer = sankashaList[uranaiIndex];
+			entity.skillAnser = uranaiPlayer.yakushoku === "人狼" ? true : false ;
+		}
+		// 霊媒師
+		else if (entity.yakushoku === "霊媒師") {
+			var reibaiIndex = seachPlayerByPlayerId(sankashaList, entity.selectedPlayerId);
+			var reibaiPlayer = sankashaList[reibaiIndex];
+			entity.skillAnser = reibaiPlayer.yakushoku === "人狼" ? true : false ;
+		}
+	}
+}
+/**
+ * 投票機能.
+ * @param tohyoshaList 投票者リスト
+ * @return tohyoshaList.selectedPlayerで最も多いプレイヤーID
+ */
+function vote(tohyoshaList) {
+	// 集計
+	var vote = {};
+	for (var i = 0; i < tohyoshaList.length; i++) {
+		var entity = tohyoshaList[i];
+		if (!entity.isLive) continue;
 		if (vote[entity.selectedPlayerId]) {
 			vote[entity.selectedPlayerId] = 1;
 		} else {
 			vote[entity.selectedPlayerId] ++;
 		}
-
-		if (vote.filter(function(item, index){
-			
-		}))
 	}
-	// 処刑者のプレイヤーIDから対象プレイヤーの名前を結果表示・死亡させる。
-	var shokeiId = vote.indexOf(Math.max.apply(null, vote));
-	gameInfo.victim = sankashaList[shokeiId].userName;
-	sankashaList[shokeiId].isLive = false;
 
+	// 投票数のみの配列を生成
+	var ids = Object.keys(vote);
+	var count = [];
+	for (var i = 0; i < ids.length; i++) {
+		var key = ids[i];
+		count[i] = vote[key];
+	}
+
+	// 投票数が最も多いプレイヤーのインデックスを取得(複数あり)
+	var maxCount = Math.max(...count);
+	var indexes = [];
+	for (var i = 0; i < count.length; i++) {
+		var index = count.indexOf(maxCount, indexes.length);
+		if (index > 0) {
+			indexes.push(index);
+		}
+	}
+
+	// 投票数が最多のプレイヤーIDを返却（複数の場合、ランダムで決定）
+	var targetIndex = indexes[Math.floor(Math.random() * indexes.length)];
+	return ids[targetIndex];
+}
+/**
+ * プレイヤー検索機能 .
+ * @param sankashaList 参加者リスト
+ * @param id 対象のプレイヤーID
+ * @return 参加者リストのインデックス番号
+ */
+function seachPlayerByPlayerId(sankashaList, id) {
+	var index = null;
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (entity.playerId === id) {
+			index = i;
+		}
+	}
+	return index;
+}
+/**
+ * プレイヤー絞り込み機能.
+ * @param sankashaList 参加者リスト
+ * @param yakushoku 対象の役職
+ * @return 絞り込み後の参加者リスト
+ */
+function refinePlayerByYakushoku(sankashaList, yakushoku) {
+	var result = [];
+	for (var i = 0; i < sankashaList.length; i++) {
+		var entity = sankashaList[i];
+		if (entity.yakushoku === yakushoku) {
+			result.push(entity);
+		}
+	}
 	return result;
-*/}
+}
 // ----------------------------------------------------------------------
 // 接続処理.
 // ----------------------------------------------------------------------

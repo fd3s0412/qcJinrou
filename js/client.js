@@ -143,14 +143,6 @@ $(function() {
 		self.$messageDiv.append(tag);
 	};
 	// ----------------------------------------------------------------------
-	// プレイヤー選択状態を表示をする.
-	// ----------------------------------------------------------------------
-	Client.prototype.sendGameInfo = function(gameInfo) {
-		var self = this;
-		// 画面操作：可能に変更
-		self.resetForm(true);
-	};
-	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
@@ -289,7 +281,7 @@ $(function() {
 			self.showResult(gameInfo, playerInfo);
 		}
 		else if (GAME_TIME_MONING === gameInfo.gameTime) {
-			self.doMorning(gameInfo);
+			self.doMorning(gameInfo, playerInfo);
 		}
 		else if (GAME_TIME_EVENING === gameInfo.gameTime) {
 			self.doEvening(gameInfo, playerInfo);
@@ -301,14 +293,28 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// 朝の行動を開始する.
 	// ----------------------------------------------------------------------
-	Client.prototype.doMorning = function(gameInfo) {
+	Client.prototype.doMorning = function(gameInfo, playerInfo) {
 		console.log("doMorning");
 		var self = this;
-
 		self.setMessage(MONING_MESSAGE, false);
+
 		// 人狼の被害者発表
-		if (gameInfo.day < 1) self.setMessage(gameInfo.victim + RESULT_NIGHT_EAT, true);
-		self.setMessage(START_TALK, true);
+		if (gameInfo.day > 0){
+			if (gameInfo.victim) {
+				self.setMessage(gameInfo.victim + RESULT_NIGHT_EAT, true);
+			}
+			else {
+				self.setMessage(RESULT_NIGHT_SAVE, true);
+			}
+		}
+		// ゲーム進行メッセージの表示
+		if (playerInfo.isLive){
+			self.setMessage(START_TALK, true);
+		} else {
+			self.setMessage(YOUR_DIE, true);
+		}
+		// 画面操作：可能に変更
+		self.resetForm(false);
 		// 時刻ボタンの活性状態設定
 		self.changeBtnEnabled(self.$eveningButton);
 	};
@@ -318,12 +324,17 @@ $(function() {
 	Client.prototype.doEvening = function(gameInfo, playerInfo) {
 		console.log("doEvening");
 		var self = this;
-
 		self.setMessage(EVENING_MESSAGE, false);
-		// 処刑者の選択
-		self.setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
-		// 画面の表示設定
-		self.sendGameInfo(gameInfo)
+
+		if (playerInfo.isLive) {
+			// 処刑者の選択
+			self.setMessage(DO_SHOKEI + SELECT_PEOPLE_MESSAGE);
+			// 画面操作：可能に変更
+			self.resetForm(true);
+		}
+		else {
+			self.setMessage(YOUR_DIE, true);
+		}
 	};
 	// ----------------------------------------------------------------------
 	// 夜の行動を開始する.
@@ -331,33 +342,40 @@ $(function() {
 	Client.prototype.doNight = function(gameInfo, playerInfo) {
 		console.log("doNight");
 		var self = this;
-
 		self.setMessage(NIGHT_MESSAGE, false);
-		var targetPlayer = "";
-		// 各役職の対象者選択
-		if (gameInfo.day === 0) {
-			targetPlayer =
-			 playerInfo.yakushoku === YAKUSHOKU_URANAISHI ? DO_URANAISHI : DO_MURABITO ;
-		} else {
-			switch (playerInfo.yakushoku) {
-				case YAKUSHOKU_JINRO :		// 人狼の場合
-					targetPlayer = DO_JINRO;
-				break;
-				case YAKUSHOKU_URANAISHI :	// 占い師の場合
-					targetPlayer = DO_URANAISHI;
-				break;
-				case YAKUSHOKU_KARIUDO :	// 狩人の場合
-					targetPlayer = DO_KARIUDO;
-				break;
-				default :
-					targetPlayer = DO_MURABITO;
-				break;
-			}
-		}
-		self.setMessage(targetPlayer + SELECT_PEOPLE_MESSAGE, true);
+		self.setMessage(gameInfo.victim + RESULT_EVENING, true);
 
-		// 画面の表示設定
-		self.sendGameInfo(gameInfo)
+		if (playerInfo.isLive) {
+			// 各役職の対象者選択
+			var targetPlayer = "";
+			if (gameInfo.day === 0) {
+				targetPlayer =
+				 playerInfo.yakushoku === YAKUSHOKU_URANAISHI ? DO_URANAISHI : DO_MURABITO ;
+			}
+			else {
+				switch (playerInfo.yakushoku) {
+					case YAKUSHOKU_JINRO :		// 人狼の場合
+						targetPlayer = DO_JINRO;
+					break;
+					case YAKUSHOKU_URANAISHI :	// 占い師の場合
+						targetPlayer = DO_URANAISHI;
+					break;
+					case YAKUSHOKU_KARIUDO :	// 狩人の場合
+						targetPlayer = DO_KARIUDO;
+					break;
+					default :
+						targetPlayer = DO_MURABITO;
+					break;
+				}
+			}
+			self.setMessage(targetPlayer + SELECT_PEOPLE_MESSAGE, true);
+
+			// 画面操作：可能に変更
+			self.resetForm(true);
+		}
+		else {
+			self.setMessage(YOUR_DIE, true);
+		}
 	};
 	// ----------------------------------------------------------------------
 	// ゲーム結果の表示をする.
