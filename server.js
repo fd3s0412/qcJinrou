@@ -31,11 +31,33 @@ var murabitoVictory = false;
 setInterval(function() {
 	// ゲーム情報をクライアントで描画する
 	sendGameInfo(gameInfo, sankashaList);
+
+	if (gameInfo.status === "ゲーム中"
+			&& !existsKodoMikanryo(sankashaList)
+	) {
+		console.log("時間が進みます。");
+		switch (gameInfo.gameTime) {
+			case "朝":
+				gameInfo.gameTime = "昼";
+				break;
+			case "昼":
+				gameInfo.gameTime = "夜";
+				break;
+			case "夜":
+				gameInfo.day++;
+				gameInfo.gameTime = "朝";
+				break;
+			default:
+				break;
+		}
+	}
+
 	// 全員の行動が完了するまで待機
 	if (gameInfo.gameTime === "夜" 
 			&& !existsKodoMikanryo(sankashaList)
 	) {
 		console.log("夜になりました。");
+
 		// 処刑者設定
 		executeShokei(sankashaList);
 		// 勝利判定
@@ -46,13 +68,11 @@ setInterval(function() {
 			var d = sankashaList[i];
 			d.doNight(gameInfo.day);
 		}
-		gameInfo.gameTime = "朝";
 	}
 	// 全員の行動が完了するまで待機
 	else if (gameInfo.gameTime === "朝"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		gameInfo.day++;
 		console.log("朝になりました。");
 
 		// 役職者のスキル処理
@@ -67,18 +87,19 @@ setInterval(function() {
 			var d = sankashaList[i];
 			d.doMorning(gameInfo.day);
 		}
-		gameInfo.gameTime = "夕方";
 	}
 	else if (gameInfo.gameTime === "夕方"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
 		console.log("夕方になりました。");
+
 		// 夕方の行動
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
 			d.doEvening(gameInfo.day);
 		}
-		gameInfo.gameTime = "夜";
+		if (!existsKodoMikanryo(sankashaList)) {
+		}
 	}
 	
 //	if (ookamiVictory === true) {
@@ -268,7 +289,7 @@ function existsKodoMikanryo(sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
 		if (entity.isLive === true && entity.canSelectPlayer) {
-			return true
+			return true;
 		}
 	}
 	return false;
@@ -306,11 +327,11 @@ function selectPlayer(obj) {
 // 処刑.
 // ----------------------------------------------------------------------
 function executeShokei(sankashaList) {
-	if (gameInfo.day === 0) return;
+	if (gameInfo.day < 1) return;
 	console.log("executeShokei");
 	// 全てのプレイヤーが投票したプレイヤーIDを取得
 	var shokeishaId = vote(sankashaList);
-	var shokeishaIndex = seachPlayerByPlayerId(sankashaList, shokeishaId);
+	var shokeishaIndex = seachPlayerIndexByPlayerId(sankashaList, shokeishaId);
 	// 処刑されたプレイヤー名をゲーム情報に保存し、死亡させる
 	var victimPlayer = sankashaList[shokeishaIndex] || {};
 	console.log(victimPlayer);
@@ -323,11 +344,11 @@ function executeShokei(sankashaList) {
 function executeEat(sankashaList) {
 	if (gameInfo.day === 0) return;
 	// 人狼プレイヤーが投票したプレイヤーIDを取得
-	var jinroList = refinePlayerByYakushoku(sankashaList, "人狼");
+	var jinroList = refinePlayerListByYakushoku(sankashaList, "人狼");
 	var hosyokushaId = vote(jinroList);
-	var hosyokushaIndex = seachPlayerByPlayerId(sankashaList, hosyokushaId);
+	var hosyokushaIndex = seachPlayerIndexByPlayerId(sankashaList, hosyokushaId);
 	// 狩人プレイヤー情報を取得（現在の設定では狩人はゲーム中1人）
-	var kariudoList = refinePlayerByYakushoku(sankashaList, "狩人");
+	var kariudoList = refinePlayerListByYakushoku(sankashaList, "狩人");
 	if (kariudoList.length > 0) {
 		var kariudo = kariudoList[0];
 		if (kariudo.isLive && kariudo.selectedPlayerId === hosyokushaId){
@@ -352,13 +373,15 @@ function executeSkill(sankashaList) {
 		if (!entity.isLive) continue;
 		// 占い師
 		if (entity.yakushoku === "占い師") {
-			var uranaiIndex = seachPlayerByPlayerId(sankashaList, entity.selectedPlayerId);
+			// 占い師プレイヤーが選択したプレイヤーの役職が人狼か真偽値で返却
+			var uranaiIndex = seachPlayerIndexByPlayerId(sankashaList, entity.selectedPlayerId);
 			var uranaiPlayer = sankashaList[uranaiIndex];
 			entity.skillAnser = uranaiPlayer.yakushoku === "人狼" ? true : false ;
 		}
 		// 霊媒師
 		else if (entity.yakushoku === "霊媒師") {
-			var reibaiIndex = seachPlayerByPlayerId(sankashaList, entity.selectedPlayerId);
+			// 霊媒師プレイヤーが選択したプレイヤーの役職が人狼か真偽値で返却
+			var reibaiIndex = seachPlayerIndexByPlayerId(sankashaList, entity.selectedPlayerId);
 			var reibaiPlayer = sankashaList[reibaiIndex];
 			entity.skillAnser = reibaiPlayer.yakushoku === "人狼" ? true : false ;
 		}
@@ -381,6 +404,7 @@ function vote(tohyoshaList) {
 			vote[entity.selectedPlayerId] ++;
 		}
 	}
+	console.log(vote);
 
 	// 投票数のみの配列を生成
 	var ids = Object.keys(vote);
@@ -402,6 +426,7 @@ function vote(tohyoshaList) {
 
 	// 投票数が最多のプレイヤーIDを返却（複数の場合、ランダムで決定）
 	var targetIndex = indexes[Math.floor(Math.random() * indexes.length)];
+	console.log(ids[targetIndex]);
 	return ids[targetIndex];
 }
 /**
@@ -410,7 +435,7 @@ function vote(tohyoshaList) {
  * @param id 対象のプレイヤーID
  * @return 参加者リストのインデックス番号
  */
-function seachPlayerByPlayerId(sankashaList, id) {
+function seachPlayerIndexByPlayerId(sankashaList, id) {
 	var index = null;
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
@@ -426,7 +451,7 @@ function seachPlayerByPlayerId(sankashaList, id) {
  * @param yakushoku 対象の役職
  * @return 絞り込み後の参加者リスト
  */
-function refinePlayerByYakushoku(sankashaList, yakushoku) {
+function refinePlayerListByYakushoku(sankashaList, yakushoku) {
 	var result = [];
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
