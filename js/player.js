@@ -1,6 +1,10 @@
-// ----------------------------------------------------------------------
-// プレイヤーの処理を扱うサーバー用のクラス.
-// ----------------------------------------------------------------------
+/**
+ * プレイヤーの処理を扱うサーバー用のクラス.
+ * @param	{String} playerId 
+ * @param	{String} userName 
+ * @param	{String} io 
+ * @param	{String} socket 
+ */
 function Player(playerId, userName, io, socket) {
 	// クライアントを呼び出し用
 	this.io = io;
@@ -39,7 +43,6 @@ function Player(playerId, userName, io, socket) {
 
 /**
  * ゲーム開始時に各ステータスを初期化.
- * @param yakushoku	役職
  */
 Player.prototype.setCallEventFromClient = function() {
 	this.socket.on('tst', selectedPlayerId);
@@ -47,17 +50,16 @@ Player.prototype.setCallEventFromClient = function() {
 
 /**
  * ゲーム開始時に各ステータスを初期化.
- * @param yakushoku	役職
  */
 Player.prototype.setDefault = function() {
 	this.setLive(true);
-	this.setSelectPlayer(false);
+	this.setSelectPlayer(true);
 	this.setSelectedPlayerId("");
 };
 
 /**
  * 朝の行動処理.
- * @param day	gameInfo.day
+ * @param	{Number} day gameInfo.day
  */
 Player.prototype.doMorning = function(day) {
 	// 各対象者の紐づきと発表
@@ -71,7 +73,7 @@ Player.prototype.doMorning = function(day) {
 };
 /**
  * 夕方の行動処理.
- * @param yakushoku	役職
+ * @param	{Number} day gameInfo.day
  */
 Player.prototype.doEvening = function(day) {
 	console.log("doEvening");
@@ -84,7 +86,7 @@ Player.prototype.doEvening = function(day) {
 };
 /**
  * 夜の行動処理.
- * @param yakushoku	役職
+ * @param	{Number} day gameInfo.day
  */
 Player.prototype.doNight = function(day) {
 	console.log("doNight");
@@ -96,10 +98,25 @@ Player.prototype.doNight = function(day) {
 		this.io.sockets.emit('selectTaishosha');
 	}
 };
+/**
+ * ゲーム終了処理.
+ * @param	{Object} gameInfo ゲーム情報
+ * @param	{String} winner 勝利陣営
+ */
+Player.prototype.doGameSet = function(gameInfo, winner) {
+	// 人狼陣営プレイヤーのゲーム終了処理
+	if (this.yakushoku === "人狼" || this.yakushoku === "狂人") {
+		this.setResult(winner === "人狼");
+	}
+	// 村人陣営プレイヤーのゲーム終了処理
+	else {
+		this.setResult(winner === "村人");
+	}
+}
 
 /**
  * ステータス更新 プレイヤー名.
- * @param userName	プレイヤー名
+ * @param	{String} userName プレイヤー名
  */
 Player.prototype.setName = function(userName) {
 	this.userName = userName;
@@ -107,7 +124,7 @@ Player.prototype.setName = function(userName) {
 
 /**
  * ステータス更新 ソケットID.
- * @param userName	ソケットID
+ * @param	{String} socketId ソケットID
  */
 Player.prototype.setSocketId = function(socketId) {
 	this.socketId = socketId;
@@ -115,7 +132,7 @@ Player.prototype.setSocketId = function(socketId) {
 
 /**
  * ステータス更新 プレイヤー画像.
- * @param userImage	プレイヤー画像
+ * @param	{String} userImage プレイヤー画像
  */
 Player.prototype.setImage = function(userImage) {
 	this.userImage = userImage;
@@ -123,7 +140,7 @@ Player.prototype.setImage = function(userImage) {
 
 /**
  * ステータス更新 プレイヤーの生死.
- * @param userName	プレイヤーの生死（true:生存, false:死亡）
+ * @param	{String} userName プレイヤーの生死（true:生存, false:死亡）
  */
 Player.prototype.setLive = function(isLive) {
 	this.isLive = isLive;
@@ -131,7 +148,7 @@ Player.prototype.setLive = function(isLive) {
 
 /**
  * ステータス更新 役職.
- * @param yakushoku	役職
+ * @param	{String} yakushoku 役職
  */
 Player.prototype.setYakushoku = function(yakushoku) {
 	this.yakushoku = yakushoku;
@@ -139,7 +156,7 @@ Player.prototype.setYakushoku = function(yakushoku) {
 
 /**
  * ステータス更新 プレイヤーの選択可否.
- * @param canSelectPlayer	プレイヤーの選択可否（true:可能, false:不可）
+ * @param	{Boolean} canSelectPlayer プレイヤーの選択可否（true:可能, false:不可）
  */
 Player.prototype.setSelectPlayer = function(canSelectPlayer) {
 	this.canSelectPlayer = canSelectPlayer;
@@ -147,7 +164,7 @@ Player.prototype.setSelectPlayer = function(canSelectPlayer) {
 
 /**
  * ステータス更新 選択したプレイヤーID.
- * @param selectedPlayerId	選択プレイヤーID
+ * @param	{String} selectedPlayerId 選択プレイヤーID
  */
 Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
 	this.selectedPlayerId = selectedPlayerId;
@@ -155,19 +172,21 @@ Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
 
 /**
  * ステータス更新 勝敗数.
- * @param isWon	勝敗（true:勝利, false:敗北）
+ * @param	{Boolean} isWon	勝敗（true:勝利, false:敗北）
  */
 Player.prototype.setResult = function(isWon) {
 	if(isWon) {
 		this.won++;
+		this.thisGameWin = true;
 	} else {
 		this.losed++;
+		this.thisGameWin = false;
 	}
 };
 
 /**
- * ステータス更新 役職.
- * @param isReadyToStart	準備完了可否（true:準備完了, false:未完了）
+ * ステータス更新 ゲームスタート準備完了フラグ.
+ * @param	{Boolean} isReadyToStart 準備完了可否（true:準備完了, false:未完了）
  */
 Player.prototype.setReadyToStart = function(isReadyToStart) {
 	this.isReadyToStart = isReadyToStart;
@@ -175,7 +194,7 @@ Player.prototype.setReadyToStart = function(isReadyToStart) {
 
 /**
  * サーバからのゲーム情報とプレイヤー情報を行動判定用に端末側へ送信.
- * @param gemeInfo 
+ * @param	{Object} gemeInfo ゲーム情報
  */
 Player.prototype.sendPlayerInfo = function(gameInfo) {
 	io.to(this.socketId).emit(
@@ -185,7 +204,7 @@ Player.prototype.sendPlayerInfo = function(gameInfo) {
 			isLive: this.isLive,
 			yakushoku: this.yakushoku,
 			canSelectPlayer: this.canSelectPlayer,
-			selectedPlayerId: selectedPlayerId
+			selectedPlayerId: this.selectedPlayerId
 		}
 	);
 }
@@ -193,6 +212,7 @@ Player.prototype.sendPlayerInfo = function(gameInfo) {
  * io.socket.emitできる形式に変換.
  * 全員に向けて送信する各プレイヤー情報であるため、
  * 役職などの他者に知られてはいけない情報はここに書かない点に注意。
+ * @param	{List} list 参加者リスト
  */
 Player.convertToSend = function(list) {
 	var result = [];
@@ -228,6 +248,7 @@ Player.convertToSend = function(list) {
 /**
  * io.socket.emitできる形式に変換.
  * 端末所持者のみに向けて送信する自身のプレイヤー情報。
+ * @param	{Player} mine 端末所持者
  */
 Player.convertToSendMine = function(mine) {
 	var result = {

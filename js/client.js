@@ -299,7 +299,7 @@ $(function() {
 		self.setMessage(MONING_MESSAGE, false);
 
 		// 人狼の被害者発表
-		if (gameInfo.day > 0){
+		if (gameInfo.day > 1){
 			if (gameInfo.victim) {
 				self.setMessage(gameInfo.victim + RESULT_NIGHT_EAT, true);
 			}
@@ -342,8 +342,13 @@ $(function() {
 	Client.prototype.doNight = function(gameInfo, playerInfo) {
 		console.log("doNight");
 		var self = this;
-		self.setMessage(NIGHT_MESSAGE, false);
-		self.setMessage(gameInfo.victim + RESULT_EVENING, true);
+
+		if (gameInfo.day === 0) {
+			self.setMessage(GAME_START_MESSAGE, false);
+		} else {
+			self.setMessage(NIGHT_MESSAGE, false);
+			self.setMessage(gameInfo.victim + RESULT_EVENING, true);
+		}
 
 		if (playerInfo.isLive) {
 			// 各役職の対象者選択
@@ -354,15 +359,19 @@ $(function() {
 			}
 			else {
 				switch (playerInfo.yakushoku) {
-					case YAKUSHOKU_JINRO :		// 人狼の場合
+					// 人狼の場合
+					case YAKUSHOKU_JINRO :
 						targetPlayer = DO_JINRO;
 					break;
-					case YAKUSHOKU_URANAISHI :	// 占い師の場合
+					// 占い師の場合
+					case YAKUSHOKU_URANAISHI :
 						targetPlayer = DO_URANAISHI;
 					break;
-					case YAKUSHOKU_KARIUDO :	// 狩人の場合
+					// 狩人の場合
+					case YAKUSHOKU_KARIUDO :
 						targetPlayer = DO_KARIUDO;
 					break;
+					// 上記以外の役職の場合
 					default :
 						targetPlayer = DO_MURABITO;
 					break;
@@ -386,7 +395,7 @@ $(function() {
 
 		var result = playerInfo.yakushoku === YAKUSHOKU_JINRO ? YAKUSHOKU_JINRO : YAKUSHOKU_MURABITO;
 		result += "陣営";
-		result += playerInfo.gameResult ? VICTORY_MESSEGE : LOSER_MESSEGE ;
+		result += playerInfo.thisGameWin ? VICTORY_MESSEGE : LOSER_MESSEGE ;
 		self.setMessage(result, false);
 	};
 

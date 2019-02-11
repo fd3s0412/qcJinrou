@@ -10,6 +10,7 @@ var YAKUSHOKU_JINRO = "人狼";
 var YAKUSHOKU_URANAISHI = "占い師";
 var YAKUSHOKU_KARIUDO = "狩人";
 
+var GAME_START_MESSAGE = "ゲームが開始されました。";
 var EVENING_MESSAGE = "夕方になりました。";
 var NIGHT_MESSAGE = "夜になりました。";
 var MONING_MESSAGE = "夜が明けました。";
