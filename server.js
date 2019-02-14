@@ -15,7 +15,7 @@ var MAX_MESSAGES_SIZE = 30;
 var data = {
 	messages : []
 };
-// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か, {String} victim: 前の時間の被害者）
+// ゲームインフォオブジェクト（{String} status: ゲーム中か否か, {Integer} day: ターン数, {String} gameTime: 朝か夕方か夜か, {String} victim: 前の時間の被害者, winner: 勝利陣営）
 var gameInfo = {};
 // プレイヤーマップ（プレイヤーIDをキーにしたプレイヤークラス格納マップ）
 var playerMap = {};
@@ -32,76 +32,82 @@ setInterval(function() {
 	// ゲーム情報をクライアントで描画する
 	sendGameInfo(gameInfo, sankashaList);
 
-	if (gameInfo.status === "ゲーム中"
-			&& !existsKodoMikanryo(sankashaList)
-	) {
-		console.log("時間が進みます。");
-		switch (gameInfo.gameTime) {
-			case "朝":
-				gameInfo.gameTime = "夕方";
-				break;
-			case "夕方":
-				gameInfo.gameTime = "夜";
-				break;
-			case "夜":
-				gameInfo.day++;
-				gameInfo.gameTime = "朝";
-				break;
-			default:
-				break;
-		}
+	// 行動未完了者が存在しない。もしくは、ゲーム中ではない場合は、下記の処理は実行しない
+	if (existsKodoMikanryo(sankashaList) || gameInfo.status !== "ゲーム中") return false;
+
+	// 時間経過処理
+	console.log("時間が進みます。");
+	switch (gameInfo.gameTime) {
+		case "朝":
+			gameInfo.gameTime = "夕方";
+		break;
+		case "夕方":
+			gameInfo.gameTime = "夜";
+		break;
+		case "夜":
+			gameInfo.day++;
+			gameInfo.gameTime = "朝";
+		break;
+		default: break;
 	}
 
-	// 全員の行動が完了するまで待機
-	if (gameInfo.gameTime === "夜" 
-			&& !existsKodoMikanryo(sankashaList)
-	) {
-		console.log("夜になりました。");
+	// 時間ごとのゲーム処理
+	switch (gameInfo.gameTime) {
+		case "夜":
+			console.log("夜になりました。");
 
-		if (gameInfo.day > 0) {
-			// 処刑者設定
-			executeShokei(sankashaList);
-			// ゲーム終了チェック
-			isWinJinro(sankashaList);
-		}
+			if (gameInfo.day > 0) {
+				// 処刑者設定
+				executeShokei(sankashaList);
+				// ゲーム終了チェック
+				isThisGameSet(sankashaList);
+			}
 
-		// 夜の行動
-		for (var i = 0; i < sankashaList.length; i++) {
-			var d = sankashaList[i];
-			d.doNight(gameInfo.day);
-		}
+			// 端末処理
+			for (var i = 0; i < sankashaList.length; i++) {
+				var d = sankashaList[i];
+				d.doNight(gameInfo.day);
+			}
+		break;
+		case "朝":
+			console.log("朝になりました。");
+
+			// 役職者のスキル処理
+			executeSkill(sankashaList);
+			if (gameInfo.day > 1) {
+				// 人狼の被害者設定
+				executeEat(sankashaList);
+				// ゲーム終了チェック
+				isThisGameSet(sankashaList);
+			}
+
+			// 端末処理
+			for (var i = 0; i < sankashaList.length; i++) {
+				var d = sankashaList[i];
+				d.doMorning(gameInfo.day);
+			}
+		break;
+		case "夕方":
+			console.log("夕方になりました。");
+
+			// 端末処理
+			for (var i = 0; i < sankashaList.length; i++) {
+				var d = sankashaList[i];
+				d.doEvening(gameInfo.day);
+			}
+		break;
+		default: break;
+	}
+		if (gameInfo.gameTime === "夜") {
 	}
 	// 全員の行動が完了するまで待機
 	else if (gameInfo.gameTime === "朝"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("朝になりました。");
-
-		// 役職者のスキル処理
-		executeSkill(sankashaList);
-		if (gameInfo.day > 0) {
-			// 人狼の被害者設定
-			executeEat(sankashaList);
-			// ゲーム終了チェック
-			isWinJinro(sankashaList);
-		}
-
-		// 朝の行動
-		for (var i = 0; i < sankashaList.length; i++) {
-			var d = sankashaList[i];
-			d.doMorning(gameInfo.day);
-		}
 	}
 	else if (gameInfo.gameTime === "夕方"
 			&& !existsKodoMikanryo(sankashaList)
 	) {
-		console.log("夕方になりました。");
-
-		// 夕方の行動
-		for (var i = 0; i < sankashaList.length; i++) {
-			var d = sankashaList[i];
-			d.doEvening(gameInfo.day);
-		}
 	}
 	
 //	if (ookamiVictory === true) {
@@ -159,9 +165,16 @@ function updateSocketId(playerId, socket) {
 // ゲームスタート.
 // ----------------------------------------------------------------------
 function startGame(params) {
-	// ゲーム情報のステータスをゲーム中に更新
-	gameInfo.status = "ゲーム中";
+	// ゲーム情報の初期化
+	gameInfo = {
+		status : "ゲーム中",
+		day : 0,
+		gameTime : "夜",		
+		victim : null,
+		winner : null
+	}
 	console.log(gameInfo);
+
 	// 参加者
 	sankashaList = getSankashaList(playerMap);
 	// 役職割振り
@@ -170,9 +183,6 @@ function startGame(params) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		sankashaList[i].setDefault();
 	}
-	// 0日目の夜からスタート
-	gameInfo.day = 0;
-	gameInfo.gameTime = "夜";
 }
 // ----------------------------------------------------------------------
 // ゲーム情報をクライアントに送信.
@@ -190,7 +200,7 @@ function sendGameInfo(gameInfo, sankashaList) {
 /**
  * 参加者リストを返す.
  * @param	{Map} playerMap プレイヤーマップ
- * @return	{Object} sankashaList 参加者リスト 
+ * @return	{Array} sankashaList 参加者リスト 
  */
 function getSankashaList(playerMap) {
 	var sankashaList = [];
@@ -221,9 +231,9 @@ function setYakushoku(playerList) {
 }
 /**
  * 人数に応じて人狼を追加.
- * @param	{Object} yakushokuList 
+ * @param	{Array} yakushokuList 
  * @param	{Number} sankashaNinzu 
- * @return	{Object} 人狼が追加された役職リスト
+ * @return	{Array} 人狼が追加された役職リスト
  */
 function addJinro(yakushokuList, sankashaNinzu) {
 	yakushokuList.push("人狼");
@@ -234,9 +244,9 @@ function addJinro(yakushokuList, sankashaNinzu) {
 }
 /**
  * 人数に応じて村人を追加.
- * @param	{Object} yakushokuList 
+ * @param	{Array} yakushokuList 
  * @param	{Number} sankashaNinzu 
- * @return	{Object} 村人が追加された役職リスト
+ * @return	{Array} 村人が追加された役職リスト
  */
 function addMurabito(yakushokuList, sankashaNinzu) {
 	for (var i = 0; i < sankashaNinzu; i++) {
@@ -295,7 +305,7 @@ function getDateTimeForLog() {
 }
 /**
  * 行動未完了存在判定.
- * @param	{Object} sankashaList
+ * @param	{Array} sankashaList 参加者リスト
  * @return	{Boolean} true:行動未完了者あり, false:全員行動完了
  */
 function existsKodoMikanryo(sankashaList) {
@@ -309,10 +319,10 @@ function existsKodoMikanryo(sankashaList) {
 }
 /**
  * 終了判定.
- * @param	{Object} sankashaList
+ * @param	{Array} sankashaList 参加者リスト
  * @return	{Boolean} true:ゲーム終了, false:ゲーム続行
  */
-function isWinJinro(sankashaList) {
+function isThisGameSet(sankashaList) {
 	var jinrouCount = 0;
 	var muraCount = 0;
 	for (var i = 0; i < sankashaList.length; i++) {
@@ -325,15 +335,13 @@ function isWinJinro(sankashaList) {
 			}
 		}
 	}
-	if (jinrouCount >= muraCount || jinrouCount === 0)
-	{
-		var winner = (jinrouCount === 0) ? "村人" : "人狼";
-/*
+	if (jinrouCount >= muraCount || jinrouCount === 0) {
+		gameInfo.winner = (jinrouCount === 0) ? "村人" : "人狼";
+
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
-			d.doGameSet(gameInfo, winner);
+			d.doGameSet(gameInfo);
 		}
-*/
 		return true;
 	}
 	return false;
@@ -377,8 +385,8 @@ function executeSkill(sankashaList) {
 		// 霊媒師
 		else if (entity.yakushoku === "霊媒師") {
 			if (gameInfo.day === 0) continue;
-			// 霊媒師プレイヤーが選択したプレイヤーの役職が人狼か真偽値で返却
-			var reibaiIndex = seachPlayerIndexByPlayerId(sankashaList, entity.selectedPlayerId);
+			// 処刑されたプレイヤーの役職が人狼か真偽値で返却
+			var reibaiIndex = seachPlayerIndexByPlayerId(sankashaList, gameInfo.victim);
 			var reibaiPlayer = sankashaList[reibaiIndex];
 			entity.skillAnser = reibaiPlayer.yakushoku === "人狼" ? true : false ;
 		}
@@ -411,7 +419,7 @@ function executeEat(sankashaList) {
 }
 /**
  * 投票機能.
- * @param	{Object} tohyoshaList 投票者リスト
+ * @param	{Array} tohyoshaList 投票者リスト
  * @return	{Number} tohyoshaList.selectedPlayerで最も多いプレイヤーID
  */
 function vote(tohyoshaList) {
@@ -451,9 +459,9 @@ function vote(tohyoshaList) {
 }
 /**
  * プレイヤー検索機能.
- * @param	{Object} sankashaList 参加者リスト
+ * @param	{Array} sankashaList 参加者リスト
  * @param	{String} id 対象のプレイヤーID
- * @return	{Number} 参加者リストのインデックス番号
+ * @return	{Number} プレイヤーIDに紐づく参加者リストのインデックス番号
  */
 function seachPlayerIndexByPlayerId(sankashaList, id) {
 	var index = null;
@@ -467,9 +475,9 @@ function seachPlayerIndexByPlayerId(sankashaList, id) {
 }
 /**
  * プレイヤー絞り込み機能.
- * @param	{Object} sankashaList 参加者リスト
+ * @param	{Array} sankashaList 参加者リスト
  * @param	{String} yakushoku 対象の役職
- * @return	{Object} 絞り込み後の参加者リスト
+ * @return	{Array} 役職で絞り込まれた参加者リスト
  */
 function refinePlayerListByYakushoku(sankashaList, yakushoku) {
 	var result = [];

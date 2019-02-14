@@ -32,8 +32,6 @@ function Player(playerId, userName, io, socket) {
 	this.won = 0;
 	// 敗数
 	this.losed = 0;
-	// 勝敗
-	this.thisGameWin = null;
 	// ゲームスタート準備完了フラグ
 	this.isReadyToStart = true;
 
@@ -101,17 +99,19 @@ Player.prototype.doNight = function(day) {
 /**
  * ゲーム終了処理.
  * @param	{Object} gameInfo ゲーム情報
- * @param	{String} winner 勝利陣営
  */
-Player.prototype.doGameSet = function(gameInfo, winner) {
+Player.prototype.doGameSet = function(gameInfo) {
 	// 人狼陣営プレイヤーのゲーム終了処理
 	if (this.yakushoku === "人狼" || this.yakushoku === "狂人") {
-		this.setResult(winner === "人狼");
+		this.setResult(gameInfo.winner === "人狼");
 	}
 	// 村人陣営プレイヤーのゲーム終了処理
 	else {
-		this.setResult(winner === "村人");
+		this.setResult(gameInfo.winner === "村人");
 	}
+
+	// クライアントにゲームスタートボタンの選択を要求
+	this.io.sockets.emit('pushGameReStart');
 }
 
 /**
@@ -177,10 +177,8 @@ Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
 Player.prototype.setResult = function(isWon) {
 	if(isWon) {
 		this.won++;
-		this.thisGameWin = true;
 	} else {
 		this.losed++;
-		this.thisGameWin = false;
 	}
 };
 

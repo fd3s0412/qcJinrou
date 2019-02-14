@@ -228,7 +228,6 @@ $(function() {
 					//self.changePlayerViewSelectPlayer(player.playerId);
 				}
 			}
-
 		}
 	};
 
@@ -345,6 +344,7 @@ $(function() {
 
 		if (gameInfo.day === 0) {
 			self.setMessage(GAME_START_MESSAGE, false);
+			self.setMessage(SHOW_YAKUSHOKU_START + playerInfo.yakushoku + DIV_END, true);
 		} else {
 			self.setMessage(NIGHT_MESSAGE, false);
 			self.setMessage(gameInfo.victim + RESULT_EVENING, true);
@@ -392,11 +392,19 @@ $(function() {
 	Client.prototype.showResult = function(gameInfo, playerInfo) {
 		console.log("showResult");
 		var self = this;
+		var yourTeam = (playerInfo.yakushoku === YAKUSHOKU_JINRO || playerInfo.yakushoku === YAKUSHOKU_KYOJIN)
+			? YAKUSHOKU_JINRO : YAKUSHOKU_MURABITO;
 
-		var result = playerInfo.yakushoku === YAKUSHOKU_JINRO ? YAKUSHOKU_JINRO : YAKUSHOKU_MURABITO;
-		result += "陣営";
-		result += playerInfo.thisGameWin ? VICTORY_MESSEGE : LOSER_MESSEGE ;
+		var result = yourTeam + "陣営";
+		result += (yourTeam === gameInfo.winner) ? VICTORY_MESSEGE : LOSER_MESSEGE;
 		self.setMessage(result, false);
+
+		// ゲーム勝利総数の表示
+		self.setMessage(RESULT_GAME, true);
+		self.setMessage(RESULT_GAME_WIN + playerInfo.won + ", " + RESULT_GAME_LOSE + playerInfo.losed, true);
+
+		// ゲームスタートボタンを活性化
+		self.changeBtnDisabled(self.$startButton);
 	};
 
 	new Client();

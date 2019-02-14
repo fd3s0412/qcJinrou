@@ -5,10 +5,13 @@ var GAME_TIME_NIGHT = "夜";
 var NOW_GAME_MESSAGE = "ゲーム中";
 var END_GAME_MESSAGE = "ゲーム終了";
 
+var SHOW_YAKUSHOKU_START = "あなたの役職は";
+var DIV_END = "です。";
 var YAKUSHOKU_MURABITO = "村人";
 var YAKUSHOKU_JINRO = "人狼";
 var YAKUSHOKU_URANAISHI = "占い師";
 var YAKUSHOKU_KARIUDO = "狩人";
+var YAKUSHOKU_KYOJIN = "狂人";
 
 var GAME_START_MESSAGE = "ゲームが開始されました。";
 var EVENING_MESSAGE = "夕方になりました。";
@@ -18,6 +21,9 @@ var YOUR_DIE = "あなたは死亡しています。";
 
 var VICTORY_MESSEGE = "の勝利だ！！";
 var LOSER_MESSEGE = "の敗北だ...";
+var RESULT_GAME = "あなたが所属した陣営が勝利した数は、";
+var RESULT_GAME_WIN = "勝利：";
+var RESULT_GAME_LOSE = "敗北：";
 
 var SELECT_PEOPLE_MESSAGE = "人を選んでください。"
 var DO_SHOKEI = "処刑する";
