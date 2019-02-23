@@ -133,16 +133,6 @@ $(function() {
 		self.$messageDiv.html("");
 	};
 	// ----------------------------------------------------------------------
-	// メッセージを画面に表示.
-	// ----------------------------------------------------------------------
-	Client.prototype.setMessage = function(message, next) {
-		var self = this;
-		var tag = "";
-		if (next) tag = "<br />";
-		tag += "<span>" + message + "</span>";
-		self.$messageDiv.append(tag);
-	};
-	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
@@ -242,28 +232,6 @@ $(function() {
 	Client.prototype.changePlayerViewNomal = function($player) {
 		$player.removeClass("selected");
 		$player.removeClass("dead");
-	};
-	// ----------------------------------------------------------------------
-	// フォーム部分の活性状態を変更.
-	// ----------------------------------------------------------------------
-	Client.prototype.resetForm = function(canAction) {
-		var self = this;
-		if (canAction) {
-			self.changeBtnEnabled(self.$kakuteiButton);
-			self.changeBtnEnabled(self.$playerButton);
-		} else {
-			self.changeBtnDisabled(self.$kakuteiButton);
-			self.changeBtnDisabled(self.$playerButton);
-		}
-	};
-	// ----------------------------------------------------------------------
-	// ボタン設定変更（活性 and 非活性）.
-	// ----------------------------------------------------------------------
-	Client.prototype.changeBtnDisabled = function($obj) {
-		$obj.attr('disabled', 'disabled');
-	};
-	Client.prototype.changeBtnEnabled = function($obj) {
-		$obj.attr('disabled');
 	};
 	// ----------------------------------------------------------------------
 	// ゲーム状態の判定.
@@ -401,10 +369,49 @@ $(function() {
 
 		// ゲーム勝利総数の表示
 		self.setMessage(RESULT_GAME, true);
-		self.setMessage(RESULT_GAME_WIN + playerInfo.won + ", " + RESULT_GAME_LOSE + playerInfo.losed, true);
+		self.setMessage(RESULT_GAME_WIN + playerInfo.won + "、" + RESULT_GAME_LOSE + playerInfo.losed, true);
 
 		// ゲームスタートボタンを活性化
 		self.changeBtnDisabled(self.$startButton);
+	};
+
+	/**
+	 * メッセージを画面に表示.
+	 * @param	{String} message 表示するメッセージ
+	 * @param	{boolean} next 2行目以降のメッセージがどうか
+	 */
+	Client.prototype.setMessage = function(message, next) {
+		var self = this;
+		var tag = "";
+		if (next) tag = "<br />";
+		tag += "<span>" + message + "</span>";
+		self.$messageDiv.append(tag);
+	};
+	/**
+	 * フォーム部分の活性状態を変更.
+	 * @param	{boolean} canAction 画面操作可否
+	 */
+	Client.prototype.resetForm = function(canAction) {
+		var self = this;
+		if (canAction) {
+			self.changeBtnEnabled(self.$kakuteiButton);
+			self.changeBtnEnabled(self.$playerButton);
+		} else {
+			self.changeBtnDisabled(self.$kakuteiButton);
+			self.changeBtnDisabled(self.$playerButton);
+		}
+	};
+	/**
+	 * ボタンの活性設定変更 活性化.
+	 */
+	Client.prototype.changeBtnEnabled = function($obj) {
+		$obj.attr('disabled');
+	};
+	/**
+	 * ボタンの活性設定変更 非活性化.
+	 */
+	Client.prototype.changeBtnDisabled = function($obj) {
+		$obj.attr('disabled', 'disabled');
 	};
 
 	new Client();

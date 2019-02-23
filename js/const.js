@@ -22,8 +22,8 @@ var YOUR_DIE = "あなたは死亡しています。";
 var VICTORY_MESSEGE = "の勝利だ！！";
 var LOSER_MESSEGE = "の敗北だ...";
 var RESULT_GAME = "あなたが所属した陣営が勝利した数は、";
-var RESULT_GAME_WIN = "勝利：";
-var RESULT_GAME_LOSE = "敗北：";
+var RESULT_GAME_WIN = "勝利数：";
+var RESULT_GAME_LOSE = "敗北数：";
 
 var SELECT_PEOPLE_MESSAGE = "人を選んでください。"
 var DO_SHOKEI = "処刑する";

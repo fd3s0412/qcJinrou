@@ -337,6 +337,7 @@ function isThisGameSet(sankashaList) {
 	}
 	if (jinrouCount >= muraCount || jinrouCount === 0) {
 		gameInfo.winner = (jinrouCount === 0) ? "村人" : "人狼";
+		gameInfo.status = "ゲーム終了";
 
 		for (var i = 0; i < sankashaList.length; i++) {
 			var d = sankashaList[i];
