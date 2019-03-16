@@ -195,7 +195,7 @@ $(function() {
 			var player = playerList[i];
 			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
 
-//			console.log(gameStatus + "," + player.canSelectPlayer);
+//			console.log(gameStatus + "," + player.enableButtonList.playerList);
 			if (NOW_GAME_MESSAGE !== gameStatus) {
 				self.changePlayerViewNomal($player);
 			}
@@ -205,7 +205,7 @@ $(function() {
 					self.changePlayerViewDead($player);
 				}
 				// 検査プレイヤーが選択済みの場合（毎秒確認）
-				else if (!player.canSelectPlayer) {
+				else if (!player.enableButtonList.playerList) {
 					self.changePlayerViewSelected($player);
 				}
 				// 上記以外の場合、ノーマル状態に設定
@@ -274,6 +274,8 @@ $(function() {
 				self.setMessage(RESULT_NIGHT_SAVE, true);
 			}
 		}
+		// 特定の役職者に対してメッセージを追加
+		self.executionSkill(playerInfo);
 		// ゲーム進行メッセージの表示
 		if (playerInfo.isLive){
 			self.setMessage(START_TALK, true);
@@ -360,19 +362,30 @@ $(function() {
 	Client.prototype.showResult = function(gameInfo, playerInfo) {
 		console.log("showResult");
 		var self = this;
+
+		// 最後の犠牲者を表示
+		if (GAME_TIME_MONING === gameInfo.gameTime) {
+			self.setMessage(gameInfo.victim + RESULT_NIGHT_EAT, false);
+		} else if (GAME_TIME_NIGHT === gameInfo.gameTime) {
+			self.setMessage(gameInfo.victim + RESULT_EVENING, false);
+		}
+
+		// 自分の所属陣営の勝敗を表示
 		var yourTeam = (playerInfo.yakushoku === YAKUSHOKU_JINRO || playerInfo.yakushoku === YAKUSHOKU_KYOJIN)
 			? YAKUSHOKU_JINRO : YAKUSHOKU_MURABITO;
 
 		var result = yourTeam + "陣営";
 		result += (yourTeam === gameInfo.winner) ? VICTORY_MESSEGE : LOSER_MESSEGE;
-		self.setMessage(result, false);
+		self.setMessage(result, true);
 
 		// ゲーム勝利総数の表示
 		self.setMessage(RESULT_GAME, true);
 		self.setMessage(RESULT_GAME_WIN + playerInfo.won + "、" + RESULT_GAME_LOSE + playerInfo.losed, true);
 
-		// ゲームスタートボタンを活性化
-		self.changeBtnDisabled(self.$startButton);
+		// ゲームマスタの場合、ゲームスタートボタンを活性化
+		if (playerInfo.enableButtonList.gameStart) {
+			self.changeBtnDisabled(self.$startButton);
+		}
 	};
 
 	/**
@@ -403,15 +416,39 @@ $(function() {
 	};
 	/**
 	 * ボタンの活性設定変更 活性化.
+	 * @param	{$Object} $obj 対象のボタン
 	 */
 	Client.prototype.changeBtnEnabled = function($obj) {
 		$obj.attr('disabled');
 	};
 	/**
 	 * ボタンの活性設定変更 非活性化.
+	 * @param	{$Object} $obj 対象のボタン
 	 */
 	Client.prototype.changeBtnDisabled = function($obj) {
 		$obj.attr('disabled', 'disabled');
+	};
+	/**
+	 * 役職者にだけスキルの処理結果を表示させる
+	 * @param	{Object} playerInfo プレイヤー情報
+	 */
+	Client.prototype.executionSkill = function(playerInfo) {
+		// playerInfo.skillAnser が空のオブジェクトの場合、処理をスキップする
+		if (Object.keys(playerInfo.skillAnser).length === 0) return false;
+
+		var self = this;
+		var yakushokuMsg = 
+			(playerInfo.yakushoku === YAKUSHOKU_URANAISHI)
+			? yakushokuMsg = SKILL_URANAISHI :
+			(playerInfo.yakushoku === YAKUSHOKU_REIBAISHI)
+			? yakushokuMsg = SKILL_REIBAISHI : "";
+
+		var targetPlayerName = playerInfo.skillAnser.targetPlayerName;
+
+		var skillResultMsg = 
+			(playerInfo.skillAnser.isJinro) ? SKILL_TRUE : SKILL_FALSE;
+		
+		self.setMessage(yakushokuMsg + targetPlayerName + skillResultMsg, true);
 	};
 
 	new Client();

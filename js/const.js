@@ -10,6 +10,7 @@ var DIV_END = "です。";
 var YAKUSHOKU_MURABITO = "村人";
 var YAKUSHOKU_JINRO = "人狼";
 var YAKUSHOKU_URANAISHI = "占い師";
+var YAKUSHOKU_REIBAISHI = "霊媒師";
 var YAKUSHOKU_KARIUDO = "狩人";
 var YAKUSHOKU_KYOJIN = "狂人";
 
@@ -21,7 +22,7 @@ var YOUR_DIE = "あなたは死亡しています。";
 
 var VICTORY_MESSEGE = "の勝利だ！！";
 var LOSER_MESSEGE = "の敗北だ...";
-var RESULT_GAME = "あなたが所属した陣営が勝利した数は、";
+var RESULT_GAME = "【あなたが所属した陣営の勝敗数】";
 var RESULT_GAME_WIN = "勝利数：";
 var RESULT_GAME_LOSE = "敗北数：";
 
@@ -38,3 +39,8 @@ var RESULT_NIGHT_SAVE = "今夜の被害者はいませんでした。";
 
 var TALK_TIME_LIMMIT = "3分"
 var START_TALK = TALK_TIME_LIMMIT + "間、誰が人狼なのか話し合ってください。";
+
+var SKILL_URANAISHI = "占った結果「";
+var SKILL_REIBAISHI = "昨日処刑された「";
+var SKILL_TRUE = "」は人狼でした。";
+var SKILL_FALSE = "」は人狼ではありませんでした。";

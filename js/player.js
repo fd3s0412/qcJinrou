@@ -24,10 +24,12 @@ function Player(playerId, userName, io, socket) {
 	this.yakushoku = "";
 	// プレイヤーの選択可否
 	this.canSelectPlayer = true;
+	// ボタン制御リスト
+	this.enableButtonList = {};
 	// 選択プレイヤーID
 	this.selectedPlayerId = "";
 	// 役職スキルによる選択結果
-	this.skillAnser = false;
+	this.skillAnser = {};
 	// 勝数
 	this.won = 0;
 	// 敗数
@@ -54,6 +56,14 @@ Player.prototype.setDefault = function() {
 	this.setSelectPlayer(true);
 	this.setSelectedPlayerId("");
 };
+
+Player.prototype.resetEnableButtonList = function() {
+	this.enableButtonList = {
+		gameStart : false,
+		playerList : false,
+		timerStart : false
+	};
+}
 
 /**
  * 朝の行動処理.
@@ -163,12 +173,40 @@ Player.prototype.setSelectPlayer = function(canSelectPlayer) {
 };
 
 /**
+ * ステータス更新 ボタン制御リスト.
+ * @param	{String} button 制御対象ボタン名
+ * @param	{Boolean} flug true = 活性化（Enable）, false = 非活性化（Disenable）
+ */
+Player.prototype.setEnableButtonList = function(button, flug) {
+	this.enableButtonList[button] = flug;
+}
+
+/**
  * ステータス更新 選択したプレイヤーID.
  * @param	{String} selectedPlayerId 選択プレイヤーID
  */
 Player.prototype.setSelectedPlayerId = function(selectedPlayerId) {
 	this.selectedPlayerId = selectedPlayerId;
 };
+
+/**
+ * ステータス更新 スキル使用結果.
+ * @param	{String} selectedPlayerId 選択したプレイヤーID
+ * @param	{String} selectedPlayerName 選択したプレイヤー名
+ * @param	{Boolean} isJinro 人狼か否か
+ */
+Player.prototype.setSkillAnser = function(selectedPlayerId, selectedPlayerName, isJinro) {
+	if (selectedPlayerId) {
+		this.skillAnser = {
+			targetPlayerId : selectedPlayerId,
+			targetPlayerName : selectedPlayerName,
+			isJinro : isJinro
+		};
+	}
+	else {
+		this.skillAnser = {};
+	}
+}
 
 /**
  * ステータス更新 勝敗数.
@@ -180,6 +218,7 @@ Player.prototype.setResult = function(isWon) {
 	} else {
 		this.losed++;
 	}
+	console.log(this.won + ", " + this.losed);
 };
 
 /**
@@ -257,7 +296,11 @@ Player.convertToSendMine = function(mine) {
 		// スキル結果
 		skillAnser : mine.skillAnser,
 		// プレイヤーの生死
-		isLive : mine.isLive
+		isLive : mine.isLive,
+		// プレイヤーの勝利数
+		won : mine.won,
+		// プレイヤーの敗北数
+		losed : mine.losed
 	};
 	return result;
 };

@@ -25,6 +25,7 @@ var sankashaList = [];
 var ookamiVictory = false;
 // 村人勝利フラグ
 var murabitoVictory = false;
+
 // ----------------------------------------------------------------------
 // 定期サーバー処理.
 // ----------------------------------------------------------------------
@@ -89,6 +90,7 @@ setInterval(function() {
 		break;
 		case "夕方":
 			console.log("夕方になりました。");
+			console.log(sankashaList);
 
 			// 端末処理
 			for (var i = 0; i < sankashaList.length; i++) {
@@ -311,7 +313,7 @@ function getDateTimeForLog() {
 function existsKodoMikanryo(sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
-		if (entity.isLive === true && entity.canSelectPlayer) {
+		if (entity.isLive && entity.enableButtonList.playerList) {
 			return true;
 		}
 	}
@@ -353,7 +355,7 @@ function isThisGameSet(sankashaList) {
 function selectPlayer(obj) {
 	var entity = playerMap[obj.playerId];
 	entity.selectedPlayerId = obj.selectedPlayerId;
-	entity.canSelectPlayer = false;
+	entity.setEnableButtonList("playerList", false);
 }
 // ----------------------------------------------------------------------
 // 処刑.
@@ -362,9 +364,8 @@ function executeShokei(sankashaList) {
 	console.log("executeShokei");
 	// 全てのプレイヤーが投票したプレイヤーIDを取得
 	var shokeishaId = vote(sankashaList);
-	var shokeishaIndex = seachPlayerIndexByPlayerId(sankashaList, shokeishaId);
+	var victimPlayer = seachPlayerByPlayerId(sankashaList, shokeishaId);
 	// 処刑されたプレイヤー名をゲーム情報に保存し、死亡させる
-	var victimPlayer = sankashaList[shokeishaIndex] || {};
 	console.log(victimPlayer);
 	gameInfo.victim = victimPlayer.userName;
 	victimPlayer.isLive = false;
@@ -375,21 +376,31 @@ function executeShokei(sankashaList) {
 function executeSkill(sankashaList) {
 	for (var i = 0; i < sankashaList.length; i++){
 		var entity = sankashaList[i];
-		if (!entity.isLive) continue;
+		if (!entity.isLive) {
+			entity.setSkillAnser();
+			continue;
+		}
 		// 占い師
 		if (entity.yakushoku === "占い師") {
 			// 占い師プレイヤーが選択したプレイヤーの役職が人狼か真偽値で返却
-			var uranaiIndex = seachPlayerIndexByPlayerId(sankashaList, entity.selectedPlayerId);
-			var uranaiPlayer = sankashaList[uranaiIndex];
-			entity.skillAnser = uranaiPlayer.yakushoku === "人狼" ? true : false ;
+			var uranaiPlayer = seachPlayerByPlayerId(sankashaList, entity.selectedPlayerId);
+			entity.setSkillAnser(
+				uranaiPlayer.playerId,
+				uranaiPlayer.userName,
+				uranaiPlayer.yakushoku === "人狼"
+			);
+
 		}
 		// 霊媒師
 		else if (entity.yakushoku === "霊媒師") {
-			if (gameInfo.day === 0) continue;
+			if (gameInfo.day < 1.1) continue;
 			// 処刑されたプレイヤーの役職が人狼か真偽値で返却
-			var reibaiIndex = seachPlayerIndexByPlayerId(sankashaList, gameInfo.victim);
-			var reibaiPlayer = sankashaList[reibaiIndex];
-			entity.skillAnser = reibaiPlayer.yakushoku === "人狼" ? true : false ;
+			var reibaiPlayer = seachPlayerByPlayerId(sankashaList, gameInfo.victim);
+			entity.setSkillAnser(
+				reibaiPlayer.playerId,
+				reibaiPlayer.userName,
+				reibaiPlayer.yakushoku === "人狼"
+			);
 		}
 	}
 }
@@ -400,20 +411,19 @@ function executeEat(sankashaList) {
 	// 人狼プレイヤーが投票したプレイヤーIDを取得
 	var jinroList = refinePlayerListByYakushoku(sankashaList, "人狼");
 	var hosyokushaId = vote(jinroList);
-	var hosyokushaIndex = seachPlayerIndexByPlayerId(sankashaList, hosyokushaId);
+	var hosyokusha = seachPlayerByPlayerId(sankashaList, hosyokushaId);
 	// 狩人プレイヤー情報を取得（現在の設定では狩人はゲーム中1人）
 	var kariudoList = refinePlayerListByYakushoku(sankashaList, "狩人");
 	if (kariudoList.length > 0) {
 		var kariudo = kariudoList[0];
 		if (kariudo.isLive && kariudo.selectedPlayerId === hosyokushaId){
-			hosyokushaIndex = null;
+			hosyokusha = null;
 		}
 	}
 	// 捕食プレイヤーが存在する場合、プレイヤー名をゲーム情報に保存し、死亡させる
-	if (hosyokushaIndex) {
-		var victimPlayer = sankashaList[hosyokushaIndex];
-		gameInfo.victim = victimPlayer.userName;
-		victimPlayer.isLive = false;
+	if (hosyokusha) {
+		gameInfo.victim = hosyokusha.userName;
+		hosyokusha.isLive = false;
 	} else {
 		gameInfo.victim = null;
 	}
@@ -455,24 +465,24 @@ function vote(tohyoshaList) {
 
 	// 投票数が最多のプレイヤーIDを返却（複数の場合、ランダムで決定）
 	var targetIndex = indexes[Math.floor(Math.random() * indexes.length)];
-	console.log("一番投票数が多い人のインデックス：" + ids[targetIndex]);
+	console.log("一番投票数が多い人のインデックス（←idになってる）：" + ids[targetIndex]);
 	return ids[targetIndex];
 }
 /**
  * プレイヤー検索機能.
  * @param	{Array} sankashaList 参加者リスト
  * @param	{String} id 対象のプレイヤーID
- * @return	{Number} プレイヤーIDに紐づく参加者リストのインデックス番号
+ * @return	{Player} 検索対象のプレイヤー情報
  */
-function seachPlayerIndexByPlayerId(sankashaList, id) {
-	var index = null;
+function seachPlayerByPlayerId(sankashaList, id) {
+	var targetPlayer = {};
 	for (var i = 0; i < sankashaList.length; i++) {
 		var entity = sankashaList[i];
 		if (entity.playerId === id) {
-			index = i;
+			targetPlayer = entity;
 		}
 	}
-	return index;
+	return targetPlayer;
 }
 /**
  * プレイヤー絞り込み機能.
@@ -507,3 +517,20 @@ io.sockets.on("connection", function(socket) {
 	// プレイヤー選択
 	socket.on("selectPlayer", selectPlayer);
 });
+/*
+  課題リスト
+  1.タグを名前で設定するとプレイヤーIDが設定されない
+  2.確定ボタンを参加ボタンに表記を変える
+  3.人狼が割り振られない場合がある
+  4.自分を選択できてしまう
+  5.ゲームをリスタートすることができない
+  6.夕方、夜の殺人結果、ゲームが終了した場合、殺された人が表示されない
+  7.死亡状態のCSSが表示されない（各ゲームフェーズと結果表示）
+  8.リネームするとインデックスと名前が変わる
+  9.インデックス情報と名前が変わる？
+ 10.役職割り振りが正常に機能していない（リネームが原因？）
+ 11.予約語（evalとか）を使うとバグる？
+ 12.夕方の投票が機能していない
+ 13.8か11のせいでサーバと端末のプレイヤー情報がずれる？
+ （サーバでは人狼なのに、端末では占い師として表示される）
+ */
