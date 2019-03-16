@@ -22,8 +22,6 @@ function Player(playerId, userName, io, socket) {
 	this.isLive = true;
 	// プレイヤーの役職
 	this.yakushoku = "";
-	// プレイヤーの選択可否
-	this.canSelectPlayer = true;
 	// ボタン制御リスト
 	this.enableButtonList = {};
 	// 選択プレイヤーID
@@ -53,7 +51,7 @@ Player.prototype.setCallEventFromClient = function() {
  */
 Player.prototype.setDefault = function() {
 	this.setLive(true);
-	this.setSelectPlayer(true);
+	this.setEnableButtonList("playerList", true);
 	this.setSelectedPlayerId("");
 };
 
@@ -75,7 +73,7 @@ Player.prototype.doMorning = function(day) {
 
 	// 【テスト用】プレイヤーの選択可状態に変更
 	if (this.isLive) {
-		this.setSelectPlayer(true);
+		this.setEnableButtonList("playerList", true);
 		this.io.sockets.emit('selectShokeisha');
 	}
 };
@@ -87,7 +85,7 @@ Player.prototype.doEvening = function(day) {
 	console.log("doEvening");
 	this.setSelectedPlayerId("");
 	if (this.isLive) {
-		this.setSelectPlayer(true);
+		this.setEnableButtonList("playerList", true);
 		// クライアントに処刑者の選択を要求
 		this.io.sockets.emit('selectShokeisha');
 	}
@@ -101,7 +99,7 @@ Player.prototype.doNight = function(day) {
 	this.setSelectedPlayerId("");
 	// 処刑者の集計と発表
 	if (this.isLive) {
-		this.setSelectPlayer(true);
+		this.setEnableButtonList("playerList", true);
 		// クライアントに対象者の選択を要求
 		this.io.sockets.emit('selectTaishosha');
 	}
@@ -162,14 +160,6 @@ Player.prototype.setLive = function(isLive) {
  */
 Player.prototype.setYakushoku = function(yakushoku) {
 	this.yakushoku = yakushoku;
-};
-
-/**
- * ステータス更新 プレイヤーの選択可否.
- * @param	{Boolean} canSelectPlayer プレイヤーの選択可否（true:可能, false:不可）
- */
-Player.prototype.setSelectPlayer = function(canSelectPlayer) {
-	this.canSelectPlayer = canSelectPlayer;
 };
 
 /**
