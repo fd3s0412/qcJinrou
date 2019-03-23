@@ -11,39 +11,45 @@
 </head>
 <body>
 	<h1>QC人狼</h1>
-	<div>
+
+	<div id="errorMessageBox"></div>
+
+	<div class="info_area">
 		<h2>名前</h2>
-		<div class="info_area">
-			<input id="userName" type="text" />
-			<input id="kakuteiButton" type="button" class="button_base" value="確定" />
-		</div>
+		<input id="userName" type="text" />
+		<input id="kakuteiButton" type="button" class="button_base" value="参加" />
 	</div>
-	<div id="gameInfoDay"></div>
-	<div id="gameInfoGameTime"></div>
-	<div id="gameInfoStatus"></div>
-	<div id="gameMessage"></div>
-	<div>
+
+	<div id="debagBox">
+		<div id="gameInfoDay"></div>
+		<div id="gameInfoGameTime"></div>
+		<div id="gameInfoStatus"></div>
+		<div id="gameMessage"></div>
+	</div>
+
+	<div id="playerList">
 		<h2>参加者</h2>
+		<ul class="name_with_icon_list" id="userList"></ul>
 	</div>
-	<ul class="name_with_icon_list" id="userList"></ul>
-	<div>
+
+	<div id="timerBox">
 		<h2>タイマー</h2>
 		<div id="timer">00:00:00</div>
 	</div>
-	<div>
+
+	<div id="systemMessageBox">
 		<h2>システムメッセージ</h2>
 		<ul id="messages"></ul>
-		<div id="messageBox"></div>
+		<div id="message"></div>
 	</div>
-	<div>
+
+	<div id="button_area">
 		<h2>管理</h2>
-		<div class="button_area">
-			<div><input id="startButton" type="button" class="button_base" value="ゲームスタート" /></div>
-			<div><input id="morningButton" type="button" class="button_base" value="(DEBUG)朝の行動" /></div>
-			<div><input id="eveningButton" type="button" class="button_base" value="(DEBUG)夕方の行動" /></div>
-			<div><input id="nightButton" type="button" class="button_base" value="(DEBUG)夜の行動" /></div>
-			<div><input id="clearButton" type="button" class="button_base" value="クリア" /></div>
-		</div>
+		<div><input id="startButton" type="button" class="button_base" value="ゲームスタート" /></div>
+		<div><input id="morningButton" type="button" class="button_base" value="(DEBUG)朝の行動" /></div>
+		<div><input id="eveningButton" type="button" class="button_base" value="(DEBUG)夕方の行動" /></div>
+		<div><input id="nightButton" type="button" class="button_base" value="(DEBUG)夜の行動" /></div>
+		<div><input id="clearButton" type="button" class="button_base" value="クリア" /></div>
 	</div>
 </body>
 </html>

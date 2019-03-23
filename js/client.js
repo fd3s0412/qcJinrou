@@ -24,14 +24,16 @@ $(function() {
 		// 参加者ボタンDom
 		this.$playerButton = $('.Button');
 		// メッセージボックスDom
-		this.$messageDiv = $('div#messageBox');
+		this.$message = $('div#message');
 		// ゲーム情報日数
 		this.$gameInfoDay = $('#gameInfoDay');
 		// ゲーム情報朝夜区分
 		this.$gameInfoGameTime = $('#gameInfoGameTime');
 		// ゲーム情報ステータス
 		this.$gameInfoStatus = $('#gameInfoStatus');
-		// メッセージ表示領域
+		// エラーメッセージ表示Dom
+		this.$errorMessageBox = $('div#errorMessageBox');
+		// メッセージ表示領域（不要？）
 		this.$gameInfoMessage = $('#messages');
 		// 通信用オブジェクト
 		this.socket = io.connect();
@@ -46,13 +48,16 @@ $(function() {
 	// ----------------------------------------------------------------------
 	Client.prototype.addEvent = function() {
 		var self = this;
+
 		// 確定ボタン
 		self.$kakuteiButton.click(function() {
 			var userName = self.$userName.val();
-			localStorage.setItem(CONST_USER_NAME, userName);
-			self.send("addGame", {playerId: self.playerId, userName: userName}, function() {
-				console.log("added game");
-			});
+			if (self.checkInputName(userName)) {
+				localStorage.setItem(CONST_USER_NAME, userName);
+				self.send("addGame", {playerId: self.playerId, userName: userName}, function() {
+					console.log("added game");
+				});
+			}
 		});
 		// ゲームスタートボタン
 		self.$startButton.click(function() {
@@ -130,7 +135,7 @@ $(function() {
 	// ----------------------------------------------------------------------
 	Client.prototype.resetMessage = function() {
 		var self = this;
-		self.$messageDiv.html("");
+		self.$message.html("");
 	};
 	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
@@ -160,7 +165,7 @@ $(function() {
 		self.$gameInfoGameTime.html(gameInfo.gameTime);
 		// ゲーム状態
 		self.$gameInfoStatus.html(gameInfo.status);
-		// メッセージ表示
+		// メッセージ表示（不要？）
 		self.$gameInfoMessage.html(playerInfo.message);
 
 		self.actionBranch(gameInfo, playerInfo);
@@ -398,7 +403,7 @@ $(function() {
 		var tag = "";
 		if (next) tag = "<br />";
 		tag += "<span>" + message + "</span>";
-		self.$messageDiv.append(tag);
+		self.$message.append(tag);
 	};
 	/**
 	 * フォーム部分の活性状態を変更.
@@ -429,7 +434,7 @@ $(function() {
 		$obj.attr('disabled', 'disabled');
 	};
 	/**
-	 * 役職者にだけスキルの処理結果を表示させる
+	 * 役職者にだけスキルの処理結果を表示させる.
 	 * @param	{Object} playerInfo プレイヤー情報
 	 */
 	Client.prototype.executionSkill = function(playerInfo) {
@@ -450,6 +455,30 @@ $(function() {
 		
 		self.setMessage(yakushokuMsg + targetPlayerName + skillResultMsg, true);
 	};
+	/**
+	 * 入力された名前が許容文字か確認する.
+	 * @param	{String} inputName 入力された名前
+	 * @returns	{Boolean} true : 入力された名前が許容文字のみの場合, false : エラーとなる文字が含まれる場合
+	 */
+	Client.prototype.checkInputName = function(inputName) {
+		var self = this;
+		// 許容文字ではない場合
+		if (inputName.match(/[ヱヰヮ]/) || inputName.match(/[^ァ-ヴA-Za-z0-9ー～]/)) {
+			// エラー内容を表示
+			self.viewError(self.$userName, "入力が禁止された文字が含まれた名前は入力できません。")
+		}
+		else return true;
+	}
+	/**
+	 * エラー表示処理.
+	 * @param	{$Object} $obj エラー原因として赤くするHTML要素
+	 * @param	{String} errorMsg エラーとして表示する文字列
+	 */
+	Client.prototype.viewError = function($obj, errorMsg) {
+		var self = this;
+		var tag = "<span>" + errorMsg + "</span>";
+		self.$errorMessageBox.append(tag);
+	}
 
 	new Client();
 });
