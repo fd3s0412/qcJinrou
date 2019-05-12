@@ -100,17 +100,6 @@ setInterval(function() {
 		break;
 		default: break;
 	}
-		if (gameInfo.gameTime === "夜") {
-	}
-	// 全員の行動が完了するまで待機
-	else if (gameInfo.gameTime === "朝"
-			&& !existsKodoMikanryo(sankashaList)
-	) {
-	}
-	else if (gameInfo.gameTime === "夕方"
-			&& !existsKodoMikanryo(sankashaList)
-	) {
-	}
 	
 //	if (ookamiVictory === true) {
 //		var victoryMessege = "狼陣営の勝利だ！！満腹満腹(^_^)";
@@ -167,6 +156,7 @@ function updateSocketId(playerId, socket) {
 // ゲームスタート.
 // ----------------------------------------------------------------------
 function startGame(params) {
+	console.log("catch GameStart.")
 	// ゲーム情報の初期化
 	gameInfo = {
 		status : "ゲーム中",
@@ -175,7 +165,6 @@ function startGame(params) {
 		victim : null,
 		winner : null
 	}
-	console.log(gameInfo);
 
 	// 参加者
 	sankashaList = getSankashaList(playerMap);
@@ -516,6 +505,8 @@ io.sockets.on("connection", function(socket) {
 	socket.on("startGame", startGame);
 	// プレイヤー選択
 	socket.on("selectPlayer", selectPlayer);
+	// 夕方（処刑者選択）へゲームを進める
+//	socket.on("moveEvening", null);
 });
 /*
   課題リスト

@@ -1,55 +1,56 @@
 <!DOCTYPE html>
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-<link rel="stylesheet" type="text/css" href="/css/base.css" />
-<script src="/js/jquery-3.3.1.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/client.js"></script>
-<script src="/js/const.js"></script>
-<title>QC人狼</title>
-</head>
-<body>
-	<h1>QC人狼</h1>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+		<link rel="stylesheet" type="text/css" href="/css/base.css" />
+		<script src="/js/jquery-3.3.1.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/client.js"></script>
+		<script src="/js/const.js"></script>
+		<title>QC人狼</title>
+	</head>
+	<body>
+		<h1>QC人狼</h1>
 
-	<div id="errorMessageBox"></div>
+		<div id="errorMessageBox"></div>
 
-	<div class="info_area">
-		<h2>名前</h2>
-		<input id="userName" type="text" />
-		<input id="kakuteiButton" type="button" class="button_base" value="参加" />
-	</div>
+		<div class="info_area">
+			<h2>名前</h2>
+			<input id="userName" type="text" />
+			<input id="kakuteiButton" type="button" class="button_base" value="参加" />
+		</div>
 
-	<div id="debagBox">
-		<div id="gameInfoDay"></div>
-		<div id="gameInfoGameTime"></div>
-		<div id="gameInfoStatus"></div>
-		<div id="gameMessage"></div>
-	</div>
+		<div id="debagBox">
+			<div id="gameInfoDay"></div>
+			<div id="gameInfoGameTime"></div>
+			<div id="gameInfoStatus"></div>
+			<div id="gameMessage"></div>
+		</div>
 
-	<div id="playerList">
-		<h2>参加者</h2>
-		<ul class="name_with_icon_list" id="userList"></ul>
-	</div>
+		<div id="playerList">
+			<h2>参加者</h2>
+			<ul class="name_with_icon_list" id="userList"></ul>
+		</div>
 
-	<div id="timerBox">
-		<h2>タイマー</h2>
-		<div id="timer">00:00:00</div>
-	</div>
+		<div id="timerBox">
+			<h2>タイマー</h2>
+			<div id="timer">00:00:00</div>
+		</div>
 
-	<div id="systemMessageBox">
-		<h2>システムメッセージ</h2>
-		<ul id="messages"></ul>
-		<div id="message"></div>
-	</div>
+		<div id="systemMessageBox">
+			<h2>システムメッセージ</h2>
+			<ul id="messages"></ul>
+			<div id="message"></div>
+		</div>
 
-	<div id="button_area">
-		<h2>管理</h2>
-		<div><input id="startButton" type="button" class="button_base" value="ゲームスタート" /></div>
-		<div><input id="morningButton" type="button" class="button_base" value="(DEBUG)朝の行動" /></div>
-		<div><input id="eveningButton" type="button" class="button_base" value="(DEBUG)夕方の行動" /></div>
-		<div><input id="nightButton" type="button" class="button_base" value="(DEBUG)夜の行動" /></div>
-		<div><input id="clearButton" type="button" class="button_base" value="クリア" /></div>
-	</div>
-</body>
+		<div id="button_area">
+			<h2>管理</h2>
+			<div><input id="startButton" type="button" class="button_base" value="ゲームスタート" /></div>
+			<div><input id="morningButton" type="button" class="button_base" value="(DEBUG)朝の行動" /></div>
+			<div><input id="eveningButton" type="button" class="button_base" value="(DEBUG)夕方の行動" /></div>
+			<div><input id="nightButton" type="button" class="button_base" value="(DEBUG)夜の行動" /></div>
+			<div><input id="clearButton" type="button" class="button_base" value="クリア" /></div>
+		</div>
+	</body>
 </html>

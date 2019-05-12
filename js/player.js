@@ -51,14 +51,14 @@ Player.prototype.setCallEventFromClient = function() {
  */
 Player.prototype.setDefault = function() {
 	this.setLive(true);
-	this.setEnableButtonList("playerList", true);
+	this.resetEnableButtonList();
 	this.setSelectedPlayerId("");
 };
 
 Player.prototype.resetEnableButtonList = function() {
 	this.enableButtonList = {
-		gameStart : false,
 		playerList : false,
+		gameStart : false,
 		timerStart : false
 	};
 }
@@ -281,6 +281,10 @@ Player.convertToSendMine = function(mine) {
 	var result = {
 		// プレイヤーID
 		playerId : mine.playerId,
+		// ボタン制御リスト
+		enableButtonList : mine.enableButtonList,
+		// 選択したプレイヤーID
+		selectedPlayerId : mine.selectedPlayerId,
 		// プレイヤーの役職
 		yakushoku : mine.yakushoku,
 		// スキル結果

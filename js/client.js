@@ -61,6 +61,7 @@ $(function() {
 		});
 		// ゲームスタートボタン
 		self.$startButton.click(function() {
+			console.log("push GameStart.");
 			self.send("startGame");
 		});
 		// プレイヤーボタン
@@ -138,6 +139,13 @@ $(function() {
 		self.$message.html("");
 	};
 	// ----------------------------------------------------------------------
+	// エラーdivの内容をリセット.
+	// ----------------------------------------------------------------------
+	Client.prototype.resetError = function() {
+		var self = this;
+		self.$errorMessageBox.html("");
+	};
+	// ----------------------------------------------------------------------
 	// サーバからのゲーム情報を画面に描画.
 	// ----------------------------------------------------------------------
 	Client.prototype.showGameInfo = function(gameInfo) {
@@ -145,7 +153,7 @@ $(function() {
 		this.showGameInfoInner(gameInfo.gameInfo, gameInfo.playerInfo);
 		this.showPlayers(gameInfo.sankashaList);
 
-		this.changePlayerView(gameInfo.sankashaList, gameInfo.gameInfo.status);
+		this.changePlayerView(gameInfo.sankashaList, gameInfo.gameInfo.status, gameInfo.playerInfo);
 	};
 	// ----------------------------------------------------------------------
 	// ゲーム情報部の表示.
@@ -166,7 +174,7 @@ $(function() {
 		// ゲーム状態
 		self.$gameInfoStatus.html(gameInfo.status);
 		// メッセージ表示（不要？）
-		self.$gameInfoMessage.html(playerInfo.message);
+//		self.$gameInfoMessage.html(playerInfo.message);
 
 		self.actionBranch(gameInfo, playerInfo);
 	};
@@ -192,10 +200,18 @@ $(function() {
 	// ----------------------------------------------------------------------
 	// プレイヤーリスト表示設定.
 	// ----------------------------------------------------------------------
-	Client.prototype.changePlayerView = function(playerList, gameStatus) {
+	Client.prototype.changePlayerView = function(playerList, gameStatus, playerInfo) {
 		var self = this;
 //		console.log(gameStatus);
 
+		// プレイヤーリスト全体の活性状態を設定
+		if (NOW_GAME_MESSAGE === gameStatus && playerInfo.enableButtonList.playerList) {
+			self.changeBtnEnabled(self.$userList);
+		} else {
+			self.changeBtnDisabled(self.$userList);
+		}
+
+		// プレイヤーリスト内の各プレイヤーボタンの表示状態を設定
 		for (var i = 0; i < playerList.length; i++) {
 			var player = playerList[i];
 			var $player = $('li').filter('[data-id="' + player.playerId + '"]');
@@ -210,7 +226,7 @@ $(function() {
 					self.changePlayerViewDead($player);
 				}
 				// 検査プレイヤーが選択済みの場合（毎秒確認）
-				else if (!player.enableButtonList.playerList) {
+				else if (playerInfo.selectedPlayerId && player.playerId === playerInfo.selectedPlayerId) {
 					self.changePlayerViewSelected($player);
 				}
 				// 上記以外の場合、ノーマル状態に設定
@@ -245,6 +261,7 @@ $(function() {
 		var self = this;
 		console.log("actionBranch");
 		console.log(gameInfo);
+		console.log(playerInfo);
 
 		self.resetMessage();
 
@@ -463,11 +480,16 @@ $(function() {
 	Client.prototype.checkInputName = function(inputName) {
 		var self = this;
 		// 許容文字ではない場合
-		if (inputName.match(/[ヱヰヮ]/) || inputName.match(/[^ァ-ヴA-Za-z0-9ー～]/)) {
+		if (inputName.match(/[ヱヰヮ]/) || inputName.match(/[^ぁ-んァ-ヴA-Za-zＡ-Ｚａ-ｚ0-9ー～]/)) {
 			// エラー内容を表示
-			self.viewError(self.$userName, "入力が禁止された文字が含まれた名前は入力できません。")
+			self.viewError(self.$userName, "入力が禁止された文字が含まれた名前は入力できません。");
+			return false;
 		}
-		else return true;
+		else {
+			// エラー内容部分をクリア
+			self.resetError();
+			return true;
+		}
 	}
 	/**
 	 * エラー表示処理.
@@ -477,7 +499,7 @@ $(function() {
 	Client.prototype.viewError = function($obj, errorMsg) {
 		var self = this;
 		var tag = "<span>" + errorMsg + "</span>";
-		self.$errorMessageBox.append(tag);
+		self.$errorMessageBox.html(tag);
 	}
 
 	new Client();

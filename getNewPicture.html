@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ページタイトル</title>
+    </head>
+    <body>
+        <h1 id="pageTitle">ページタイトル</h1>
+        <div id="no1">
+            <form>
+                <input type="file" onchange="getFile(this)" formenctype="multipart/form-data" webkitdirectory />
+                <input type="reset" onclick="resetPictForm(this)" />
+            </form>
+            <h2 class="name"></h2>
+            <img class="pict" />
+        </div>
+        <script>
+            function getFile(event)
+            {
+                var list = event.files;
+                if (list.length === 0) return false;
+
+                var pictList = getPictList(list);
+                if (pictList.length === 0) return false;
+
+                var newPict = getNewPict(pictList);
+                newPict.path = getPictPath(event.baseURI) + newPict.webkitRelativePath;
+                var targetDiv = event.parentElement.parentElement;
+                viewHtml(newPict, targetDiv);
+            };
+            function getPictList(list)
+            {
+                var pictList = [];
+                for(var i = 0, len = list.length; i < len; i++)
+                {
+                    var file = list[String(i)];
+                    if (file.type === 'image/png') pictList.push(file);
+                }
+                return pictList;
+            };
+            function getNewPict(pictList)
+            {
+                pictList.sort();
+                return pictList[String(pictList.length - 1)];
+            };
+            function getPictPath(baseURI)
+            {
+                var pathList = baseURI.split('/');
+                var path = '';
+                for (var i = 0, len = pathList.length; i < len; i++)
+                {
+                    var tmp = pathList[i];
+                    if (!tmp || tmp === 'file:' || tmp.slice(-5) === '.html') continue;
+                    path += (tmp + '/');
+                }
+                return path;
+            };
+            function viewHtml(newPict, targetDiv)
+            {
+                var reader = new FileReader();
+                reader.addEventListener('load', viewer(newPict, targetDiv));
+            };
+            function viewer(newPict, targetDiv)
+            {
+                var div = '#' + targetDiv.id;
+                var docName = document.querySelector(div + ' h2.name');
+                var docPict = document.querySelector(div + ' img.pict');
+                docName.innerText = newPict.name;
+                docPict.src = newPict.path;
+            };
+            function resetPictForm(event)
+            {
+                var targetDiv = event.parentElement.parentElement;
+                var reader = new FileReader();
+                reader.addEventListener('load', viewerReset(targetDiv));
+            };
+            function viewerReset(targetDiv)
+            {
+                var div = '#' + targetDiv.id;
+                var docName = document.querySelector(div + ' h2.name');
+                var docPict = document.querySelector(div + ' img.pict');
+                docName.innerText = null;
+                docPict.src = '';
+            };
+        </script>
+    </body>
+</html>
