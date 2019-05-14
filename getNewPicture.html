@@ -13,6 +13,8 @@
             <h2 class="name"></h2>
             <img class="pict" />
         </div>
+        <button id="addDiv" onclick="addPictDiv()">表示画像を追加</button>
+
         <script>
             function getFile(event)
             {
@@ -80,6 +82,13 @@
                 var docPict = document.querySelector(div + ' img.pict');
                 docName.innerText = null;
                 docPict.src = '';
+            };
+            function addPictDiv()
+            {
+                var divList = document.getElementsByTagName('div');
+                var divID = 'no' + String(divList.length + 1);
+                var tag = '<div id="'+ divID +'"><form><input type="file" onchange="getFile(this)" formenctype="multipart/form-data" webkitdirectory /><input type="reset" onclick="resetPictForm(this)" /></form><h2 class="name"></h2><img class="pict" /></div>';
+                document.getElementById('addDiv').insertAdjacentHTML('beforebegin',tag);
             };
         </script>
     </body>
