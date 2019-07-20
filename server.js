@@ -161,7 +161,7 @@ function startGame(params) {
 	gameInfo = {
 		status : "ゲーム中",
 		day : 0,
-		gameTime : "夜",		
+		gameTime : "夜",
 		victim : null,
 		winner : null
 	}

@@ -57,7 +57,7 @@ Player.prototype.setDefault = function() {
 
 Player.prototype.resetEnableButtonList = function() {
 	this.enableButtonList = {
-		playerList : false,
+		playerList : true,
 		gameStart : false,
 		timerStart : false
 	};
