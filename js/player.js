@@ -68,6 +68,7 @@ Player.prototype.resetEnableButtonList = function() {
  * @param	{Number} day gameInfo.day
  */
 Player.prototype.doMorning = function(day) {
+	this.setSelectedPlayerId("");
 	// 各対象者の紐づきと発表
 	// タイマー（未実装）	this.io.sockets.emit('startTimer');
 
